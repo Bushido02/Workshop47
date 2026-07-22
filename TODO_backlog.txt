@@ -1,0 +1,55 @@
+
+Features
+--------
+
+[❌] Custom building buttons
+    - Customisable icon, name, tooltip, range, cooldown, activation type (on-click, entity-target, ground target)
+    - Can be used for an ability, production, etc.
+    - On new 3rd screen
+
+[❌] Make custom arrow entity to control logic better
+    - Half pierce and multishot damage
+
+[❌] Save control groups to world per player
+
+[❌] Camera hotkeys (see starcraft example)
+
+Scenario roles:
+    [❌] Use start menu colours for each role
+    [❌] When role is cycled, move camera to the first found building (or unit if no building)
+    [❌] Show different colours for each different assigned role
+    [❌] Fire events for addons to use when a scenario starts
+
+[❌] Invisible block that units avoid
+
+[❌] Let villagers repair iron golems with ore for 1hp per ore, masons repair faster
+
+[❌] Nydus worm-style ability for transport portals
+    - Because without Fog of war, transport portals are too weak
+    - Includes minimap and sound warning
+
+[❌] Config to allow changing resource block values, including modded blocks
+
+[❌] Horses for villagers and change captain flags to be a resistance aura?
+
+
+Bugfixes
+--------
+[❌] Players logging in messes up the observer menu (and freezes resources?)
+[❌] bridge scroll bug (up and down vs left/right?)
+[❌] Fix day/night time when /gamerule doDaylightCycle false
+
+Quality of Life Features
+------------------------
+
+[❌] Handicap command
+    - Makes all resource costs some % higher than normal
+
+[❌] Added /gamerule for bridges over void
+
+[❌] restore ores on /rts-reset
+    - Have to track each ore block when it is mined or converted into nether terrain
+
+[❌] Waypoint looping (by shift clicking back onto a previous waypoint it will automatically cycle the list once it reaches the end)
+
+
