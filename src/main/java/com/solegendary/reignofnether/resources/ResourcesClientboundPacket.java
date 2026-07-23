@@ -110,6 +110,19 @@ public class ResourcesClientboundPacket {
         );
     }
 
+    public static void warnBuildingOutsideBuildZone(String ownerName) {
+        PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(),
+                new ResourcesClientboundPacket(ResourcesAction.SHOW_WARNING,
+                        ownerName,
+                        0,
+                        0,
+                        0,
+                        new BlockPos(0, 0, 0),
+                        "server.resources.reignofnether.outside_build_zone"
+                )
+        );
+    }
+
     public static void warnFullGraveyard(String ownerName) {
         PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(),
                 new ResourcesClientboundPacket(ResourcesAction.SHOW_WARNING,

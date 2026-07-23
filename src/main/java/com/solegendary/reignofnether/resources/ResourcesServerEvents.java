@@ -269,6 +269,23 @@ public class ResourcesServerEvents {
         if (isLogBlock(evt.getState()) && !BuildingUtils.isPosInsideAnyBuilding(false, evt.getPos())) {
             fellAdjacentLogs(evt.getPos(), new ArrayList<>(), (Level) evt.getLevel());
         }
+
+        // Instantly credit the player's own personal mining to the shared RTS resource pool,
+        // instead of requiring them to hand items to a worker unit and enter the RTS view for it
+        // to register. Added 22.07.2026 per user request. Only applies to the player themself
+        // breaking a block by hand - worker units gather resources through a completely separate
+        // path (unit/goals/GatherResourcesGoal.java) that doesn't go through vanilla
+        // BlockEvent.BreakEvent at all, so there's no double-counting risk here.
+        if (!evt.isCanceled() && evt.getPlayer() != null && !evt.getPlayer().level().isClientSide()) {
+            ResourceSource resSource = ResourceSources.getFromBlockPos(evt.getPos(), (Level) evt.getLevel());
+            if (resSource != null && resSource.resourceName != ResourceName.NONE) {
+                String playerName = evt.getPlayer().getName().getString();
+                int food = resSource.resourceName == ResourceName.FOOD ? resSource.resourceValue : 0;
+                int wood = resSource.resourceName == ResourceName.WOOD ? resSource.resourceValue : 0;
+                int ore = resSource.resourceName == ResourceName.ORE ? resSource.resourceValue : 0;
+                addSubtractResources(new Resources(playerName, food, wood, ore));
+            }
+        }
     }
 
     // if a tree is touched, destroy any adjacent logs that are above the ground after some time to avoid leaving

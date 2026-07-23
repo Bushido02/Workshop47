@@ -2203,6 +2203,11 @@ public class HudClientEvents {
     public static void onRenderCustomPlayerHud(RenderGuiOverlayEvent.Post evt) {
         if (MC.player == null || MC.level == null)
             return;
+        // Don't draw over the RTS/orthoview screen - it already has its own resource panel
+        // (see onDrawScreen above, tied to TopdownGui) and the heart/eidos/level/stats block
+        // visually clashes with it. Only show this custom HUD in normal first/third-person play.
+        if (OrthoviewClientEvents.isEnabled())
+            return;
         // only draw once per frame - VanillaGuiOverlay fires Post once per overlay, so gate on
         // one specific overlay id (HOTBAR) to avoid drawing this HUD block many times per frame
         if (evt.getOverlay() != VanillaGuiOverlay.HOTBAR.type())
@@ -2238,15 +2243,23 @@ public class HudClientEvents {
         String timeStr = String.format("%02d:%02d", inGameHour, inGameMinute);
         evt.getGuiGraphics().drawString(MC.font, timeStr, clockX - 4, clockY - 10, 0xFFFFFF);
 
-        // level (replaces vanilla XP level number) - shown centered above the hotbar like vanilla
-        // used to, plus eidos (replaces vanilla XP bar) just below it
-        String levelStr = "Ур: " + progression.level;
+        // level + eidos (replaces vanilla XP level number + bar) - "Эйдос" is just vanilla
+        // Minecraft XP relabelled/reskinned per user request (22.07.2026), NOT a separate
+        // currency. Reads player.experienceLevel/totalExperience directly instead of the old
+        // progression.level/eidos scaffolding fields, which are no longer used for this.
+        String levelStr = "Ур: " + MC.player.experienceLevel;
         int levelStrWidth = MC.font.width(levelStr);
         evt.getGuiGraphics().drawString(MC.font, levelStr, (screenWidth - levelStrWidth) / 2, screenHeight - 50, 0xFFFFFF);
 
-        String eidosStr = "Эйдос: " + progression.eidos;
+        String eidosStr = "Эйдос: " + MC.player.totalExperience;
+        int eidosIconSize = 12;
         int eidosStrWidth = MC.font.width(eidosStr);
-        evt.getGuiGraphics().drawString(MC.font, eidosStr, (screenWidth - eidosStrWidth) / 2, screenHeight - 40, 0xFFD700);
+        int eidosTotalWidth = eidosStrWidth + eidosIconSize + 2;
+        int eidosX = (screenWidth - eidosTotalWidth) / 2;
+        MyRenderer.renderIcon(evt.getGuiGraphics(),
+                ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/hud/formix_eidos.png"),
+                eidosX, screenHeight - 42, eidosIconSize);
+        evt.getGuiGraphics().drawString(MC.font, eidosStr, eidosX + eidosIconSize + 2, screenHeight - 40, 0xFFD700);
 
         // three Formix stats (body/mind/fist) - drawn as a small row just above the hotbar,
         // roughly matching where the reference screenshot placed them

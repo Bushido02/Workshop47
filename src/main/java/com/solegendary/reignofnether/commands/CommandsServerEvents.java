@@ -1069,6 +1069,10 @@ public class CommandsServerEvents {
 
 	// TEMPORARY (see FORMIX_FACTION_LOG.md): sets a Formix player-progression stat directly,
 	// bypassing any real skill-point-spending logic since that system doesn't exist yet.
+	// NOTE: "eidos" and "level" set the player's REAL vanilla XP (totalExperience/
+	// experienceLevel) directly, since Eidos is just relabelled vanilla XP, not a separate
+	// currency (see FORMIX_FACTION_LOG.md section 11) - "body"/"mind"/"fist" remain scaffolding
+	// fields with no vanilla equivalent, stored in FormixPlayerProgression as before.
 	private static int setFormixStat(
 		CommandContext<CommandSourceStack> ctx,
 		String statName,
@@ -1080,8 +1084,22 @@ public class CommandsServerEvents {
 			case "body" -> FormixPlayerProgressionServerEvents.setBodyLevel(level, playerName, amount);
 			case "mind" -> FormixPlayerProgressionServerEvents.setMindLevel(level, playerName, amount);
 			case "fist" -> FormixPlayerProgressionServerEvents.setFistLevel(level, playerName, amount);
-			case "eidos" -> FormixPlayerProgressionServerEvents.setEidos(level, playerName, amount);
-			case "level" -> FormixPlayerProgressionServerEvents.setLevel(level, playerName, amount);
+			case "eidos" -> {
+				ServerPlayer player = level.getServer().getPlayerList().getPlayerByName(playerName);
+				if (player == null) {
+					ctx.getSource().sendFailure(Component.literal("Player '" + playerName + "' not found or not online"));
+					return 0;
+				}
+				player.giveExperiencePoints(amount - player.totalExperience);
+			}
+			case "level" -> {
+				ServerPlayer player = level.getServer().getPlayerList().getPlayerByName(playerName);
+				if (player == null) {
+					ctx.getSource().sendFailure(Component.literal("Player '" + playerName + "' not found or not online"));
+					return 0;
+				}
+				player.setExperienceLevels(amount);
+			}
 			default -> {
 				ctx.getSource().sendFailure(Component.literal("Unknown stat '" + statName + "', expected one of: body, mind, fist, eidos, level"));
 				return 0;

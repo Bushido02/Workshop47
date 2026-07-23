@@ -17,13 +17,16 @@ public class FormixPlayerProgression {
     public int mindLevel;
     public int fistLevel;
 
-    // Eidos - reuses vanilla Minecraft XP as its value (user explicitly said "просто текстуру и
-    // название поменяем" - it is NOT a separate currency/resource, just vanilla XP relabelled).
-    // Kept here too (mirrored from the player's real XP) purely so the custom HUD counter has a
-    // single simple source to read without reaching into ServerPlayer directly from render code.
+    // Eidos - DEPRECATED as of 22.07.2026: originally a standalone field, now unused by the HUD
+    // (see hud/HudClientEvents.onRenderCustomPlayerHud). Eidos is just relabelled vanilla
+    // Minecraft XP per user request ("просто текстуру и название поменяем") - the HUD reads
+    // player.totalExperience/experienceLevel directly instead. Kept here only so existing saved
+    // data doesn't break; not read anywhere in current code. Safe to remove entirely in a future
+    // cleanup pass once confirmed nothing references it.
     public int eidos;
 
-    // overall character level shown as "Ур: N" on the custom hero-style HUD panel
+    // overall character level - DEPRECATED as of 22.07.2026, see eidos comment above. HUD now
+    // reads player.experienceLevel directly instead of this field.
     public int level;
 
     public FormixPlayerProgression(String ownerName, int bodyLevel, int mindLevel, int fistLevel, int eidos, int level) {

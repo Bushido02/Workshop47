@@ -342,6 +342,11 @@ public class BuildingServerEvents {
                 }
             }
 
+            if (!fromCommand && !BuildingUtils.canPlaceWithinBuildZone(false, new Vec3(pos.getX(), pos.getY(), pos.getZ()), ownerName)) {
+                ResourcesClientboundPacket.warnBuildingOutsideBuildZone(ownerName);
+                return null;
+            }
+
             if (fromCommand || newBuilding.canAfford(ownerName)) {
                 if (fromCommand ||
                     (serverLevel.getGameRules().getRule(GameRuleRegistrar.SLANTED_BUILDING).get() &&

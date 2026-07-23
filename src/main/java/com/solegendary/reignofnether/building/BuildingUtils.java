@@ -32,6 +32,35 @@ public class BuildingUtils {
 
     public static List<Keybinding> keybindings = Arrays.asList();
 
+    // Build zone radius (blocks) around a player's capitol building (isCapitol=true - TownCentre,
+    // FormixHive, Central Portal, etc, whichever the player's faction uses) outside of which new
+    // buildings cannot be placed. Added 22.07.2026 per user request ("граница до которой можно
+    // ставить здания"). Applies to ALL factions equally since it's keyed off the generic
+    // Building.isCapitol flag, not anything Formix-specific. See canPlaceWithinBuildZone() below
+    // for the actual check and RangeIndicatorAddon usage on capitol buildings for the visual
+    // circle - same rendering mechanism already used for FormixHive's WARRIOR_RANGE, reused here
+    // for a different purpose (build zone instead of worker->warrior conversion range).
+    public static final int BUILD_ZONE_RADIUS = 80;
+
+    // Returns true if pos is within BUILD_ZONE_RADIUS of ANY of the player's own capitol
+    // buildings (a player might rebuild after losing their first capitol, or - in scenarios that
+    // allow it - have more than one). Returns true (i.e. allows building) if the player has no
+    // capitol yet, since that's the very first building they place and can't be near itself.
+    public static boolean canPlaceWithinBuildZone(boolean isClientSide, Vec3 pos, String ownerName) {
+        List<BuildingPlacement> buildings = isClientSide ? BuildingClientEvents.getBuildings() : BuildingServerEvents.getBuildings();
+        boolean hasAnyCapitol = false;
+        for (BuildingPlacement placement : buildings) {
+            if (!placement.ownerName.equals(ownerName) || !placement.isCapitol)
+                continue;
+            hasAnyCapitol = true;
+            double dx = placement.centrePos.getX() - pos.x;
+            double dz = placement.centrePos.getZ() - pos.z;
+            if ((dx * dx + dz * dz) <= (double) BUILD_ZONE_RADIUS * BUILD_ZONE_RADIUS)
+                return true;
+        }
+        return !hasAnyCapitol;
+    }
+
     public static int getTotalCompletedBuildingsOwned(boolean isClientSide, String ownerName) {
         List<BuildingPlacement> buildings;
         if (isClientSide)

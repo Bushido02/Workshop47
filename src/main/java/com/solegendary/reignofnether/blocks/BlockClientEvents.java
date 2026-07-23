@@ -63,6 +63,20 @@ public class BlockClientEvents {
             }
         }
 
+        // build zone border around the player's own selected capitol building - separate from
+        // RangeIndicatorAddon above (which some capitols like FormixHive/TownCentre already use
+        // for a different purpose, e.g. worker->warrior conversion range) so it doesn't clash
+        // with that existing circle. Added 22.07.2026, see BuildingUtils.BUILD_ZONE_RADIUS.
+        for (BuildingPlacement building : BuildingClientEvents.getBuildings()) {
+            if (!building.isCapitol || !BuildingClientEvents.getSelectedBuildings().contains(building))
+                continue;
+            for (BlockPos bp : MiscUtil.getRangeIndicatorCircleBlocks(building.centrePos, BuildingUtils.BUILD_ZONE_RADIUS, building.level)) {
+                int snowLayers = BlockUtils.getSnowLayers(building.level.getBlockState(bp.above()));
+                float yOffset = snowLayers * 0.125f;
+                MyRenderer.drawBlockFace(evt.getPoseStack(), vertexConsumer, Direction.UP, yOffset, bp, 0.3f, 0.6f, 1f, 0.35f);
+            }
+        }
+
         if (tempMouseCircleOrigin != null && MC.level != null) {
             Set<BlockPos> bps = MiscUtil.CircleUtil.getCircle(tempMouseCircleOrigin.getFirst(), tempMouseCircleOrigin.getSecond());
             for (BlockPos bp : bps) {
