@@ -448,13 +448,18 @@ public class PlayerServerEvents {
             ServerLevel level = (ServerLevel) serverPlayer.level();
             ArrayList<Entity> workers = new ArrayList<>();
 
-            List<BlockPos> bp0s = List.of(
+            // Formix intentionally starts with fewer workers (3) than other factions (5) for
+            // balance, per explicit user request (23.07.2026) - FormixHive gives less population
+            // supply too (5 vs 10 for other capitols), see config/ReignOfNetherCommonConfigs.java
+            List<BlockPos> allStartPositions = List.of(
                     new BlockPos((int) pos.x,0,(int) pos.z),
                     new BlockPos((int) pos.x+1,0,(int) pos.z),
                     new BlockPos((int) pos.x,0,(int) pos.z+1),
                     new BlockPos((int) pos.x-1,0,(int) pos.z),
                     new BlockPos((int) pos.x,0,(int) pos.z-1)
             );
+            int startingWorkerCount = faction == Faction.FORMIX ? 3 : 5;
+            List<BlockPos> bp0s = allStartPositions.subList(0, startingWorkerCount);
             for (BlockPos bp0 : bp0s) {
                 Entity entity = entityType != null ? entityType.create(level) : null;
                 if (entity != null) {

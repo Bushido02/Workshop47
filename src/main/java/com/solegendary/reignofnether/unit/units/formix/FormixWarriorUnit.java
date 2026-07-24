@@ -153,15 +153,15 @@ public class FormixWarriorUnit extends Monster implements Unit, AttackerUnit, Ke
     public TargetResourcesSave resourcesSaveData = null;
 
     final static public float attackDamage = 4.0f;
-    final static public float attacksPerSecond = 0.6f;
-    final static public float attackRange = 2;
-    final static public float aggroRange = 10;
+    final static public float attacksPerSecond = 0.5f;
+    final static public float attackRange = 1;
+    final static public float aggroRange = 1;
     final static public boolean willRetaliate = true;
     final static public boolean aggressiveWhenIdle = true;
 
-    final static public float maxHealth = 35.0f;
-    final static public float armorValue = 3.0f;
-    final static public float movementSpeed = 0.27f;
+    final static public float maxHealth = 80.0f;
+    final static public float armorValue = 0.0f;
+    final static public float movementSpeed = 0.25f;
     public int maxResources = 100;
 
     private Abilities abilities = ABILITIES.clone();

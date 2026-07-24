@@ -21,6 +21,9 @@ public class StartButtons {
 
     public static final int ICON_SIZE = 14;
     private static final int STARTING_WORKERS = 5;
+    // Formix intentionally starts with fewer workers than other factions, see
+    // player/PlayerServerEvents.java startRTS() for the actual spawn logic - kept in sync here.
+    private static final int STARTING_WORKERS_FORMIX = 3;
 
     public static Button sandboxStartButton = new Button(
             "Sandbox",
@@ -98,7 +101,7 @@ public class StartButtons {
             null,
             List.of(
                     fcs(LanguageUtil.getTranslation("hud.startbuttons.formix.reignofnether.first"), true),
-                    fcs(LanguageUtil.getTranslation("hud.startbuttons.formix.reignofnether.second", STARTING_WORKERS))
+                    fcs(LanguageUtil.getTranslation("hud.startbuttons.formix.reignofnether.second", STARTING_WORKERS_FORMIX))
             )
     );
 }

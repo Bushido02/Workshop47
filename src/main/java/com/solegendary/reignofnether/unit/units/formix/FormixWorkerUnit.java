@@ -161,14 +161,10 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
         return Blocks.WHEAT.defaultBlockState();
     }
 
-    final static public float attackDamage = 1.0f;
-    final static public float attacksPerSecond = 0.5f;
-    final static public float attackRange = 2;
-    final static public float aggroRange = 0;
     final static public boolean willRetaliate = false;
     final static public boolean aggressiveWhenIdle = false;
 
-    final static public float maxHealth = 20.0f;
+    final static public float maxHealth = 25.0f;
     final static public float armorValue = 0.0f;
     final static public float movementSpeed = 0.25f;
     public int maxResources = 100;
@@ -251,15 +247,10 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.ATTACK_DAMAGE, FormixWorkerUnit.attackDamage)
                 .add(Attributes.MOVEMENT_SPEED, FormixWorkerUnit.movementSpeed)
                 .add(Attributes.MAX_HEALTH, FormixWorkerUnit.maxHealth)
                 .add(Attributes.FOLLOW_RANGE, Unit.getFollowRange())
                 .add(Attributes.ARMOR, FormixWorkerUnit.armorValue)
-                .add(AttributeRegistrar.ATTACK_DAMAGE.get(), attackDamage)
-                .add(AttributeRegistrar.ATTACKS_PER_SECOND.get(), attacksPerSecond)
-                .add(AttributeRegistrar.ATTACK_RANGE.get(), attackRange)
-                .add(AttributeRegistrar.AGGRO_RANGE.get(), aggroRange)
                 .add(AttributeRegistrar.RANGED_DAMAGE_RESIST.get(), 0)
                 .add(AttributeRegistrar.MAGIC_DAMAGE_RESIST.get(), 0);
     }

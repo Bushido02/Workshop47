@@ -1121,8 +1121,16 @@ public class HudClientEvents {
         int resourceBlitYStart = blitY;
         int resourcePanelBottomY = blitY;
 
+        // eidos (Formix player XP, relabelled) is only meaningful for the local player - other
+        // players'/allies' totalExperience isn't synced/available here, so only show this row
+        // when the selected player is the local player themselves.
+        boolean showEidosRow = isSelPlayer && MC.player != null;
+
         if (resources != null && MC.player != null) {
-            for (String resourceName : new String[] { "food", "wood", "ore", "pop" }) {
+            String[] resourceRowsIcons = showEidosRow
+                ? new String[] { "food", "wood", "ore", "eidos", "pop" }
+                : new String[] { "food", "wood", "ore", "pop" };
+            for (String resourceName : resourceRowsIcons) {
                 ResourceLocation rl;
                 String resValueStr = "";
                 ResourceName resName;
@@ -1144,6 +1152,11 @@ public class HudClientEvents {
                         rl = ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/icons/items/iron_ore.png");
                         resValueStr = String.valueOf(resources.ore);
                         resName = ResourceName.ORE;
+                    }
+                    case "eidos" -> {
+                        rl = ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/hud/formix_eidos.png");
+                        resValueStr = String.valueOf(MC.player.totalExperience);
+                        resName = ResourceName.NONE;
                     }
                     default -> {
                         rl = PlayerColors.getPlayerColorBedIcon(selPlayerName);
@@ -1182,68 +1195,72 @@ public class HudClientEvents {
                     0xFFFFFF
                 );
 
-                // worker count assigned to each resource
-                String finalSelPlayerName = selPlayerName;
+                // eidos has no worker-assignment concept (it isn't gathered by units), so skip
+                // the second column (assigned-worker count box) entirely for that row.
+                if (!resourceName.equals("eidos")) {
+                    // worker count assigned to each resource
+                    String finalSelPlayerName = selPlayerName;
 
-                int numWorkersHunting = UnitClientEvents.getAllUnits()
-                    .stream()
-                    .filter(le -> le instanceof WorkerUnit wu && le instanceof Unit u && u.getOwnerName()
-                        .equals(finalSelPlayerName) && ResourceSources.isHuntableAnimal(u.getTargetGoal().getTarget()))
-                    .toList()
-                    .size();
-
-                int numWorkersAssigned = 0;
-                // we can only see ReturnResourcesGoal data on server, so we can't use that here
-                if (resName == ResourceName.NONE) {
-                    numWorkersAssigned = UnitClientEvents.getAllUnits()
+                    int numWorkersHunting = UnitClientEvents.getAllUnits()
                         .stream()
-                        .filter(u -> u instanceof WorkerUnit
-                                && ((Unit) u).getOwnerName().equals(finalSelPlayerName))
+                        .filter(le -> le instanceof WorkerUnit wu && le instanceof Unit u && u.getOwnerName()
+                            .equals(finalSelPlayerName) && ResourceSources.isHuntableAnimal(u.getTargetGoal().getTarget()))
                         .toList()
                         .size();
-                } else {
-                    for (LivingEntity le : UnitClientEvents.getAllUnits()) {
-                        if (le instanceof Unit u && le instanceof WorkerUnit wu && u.getOwnerName()
-                            .equals(finalSelPlayerName) && !UnitClientEvents.idleWorkerIds.contains(le.getId())) {
 
-                            boolean alreadyAssigned = false;
+                    int numWorkersAssigned = 0;
+                    // we can only see ReturnResourcesGoal data on server, so we can't use that here
+                    if (resName == ResourceName.NONE) {
+                        numWorkersAssigned = UnitClientEvents.getAllUnits()
+                            .stream()
+                            .filter(u -> u instanceof WorkerUnit
+                                    && ((Unit) u).getOwnerName().equals(finalSelPlayerName))
+                            .toList()
+                            .size();
+                    } else {
+                        for (LivingEntity le : UnitClientEvents.getAllUnits()) {
+                            if (le instanceof Unit u && le instanceof WorkerUnit wu && u.getOwnerName()
+                                .equals(finalSelPlayerName) && !UnitClientEvents.idleWorkerIds.contains(le.getId())) {
 
-                            if (u.getReturnResourcesGoal() != null) {
-                                Resources res = Resources.getTotalResourcesFromItems(u.getItems());
-                                if (resName == ResourceName.FOOD && res.food > 0
-                                    || resName == ResourceName.WOOD && res.wood > 0
-                                    || resName == ResourceName.ORE && res.ore > 0) {
-                                    numWorkersAssigned += 1;
-                                    alreadyAssigned = true;
+                                boolean alreadyAssigned = false;
+
+                                if (u.getReturnResourcesGoal() != null) {
+                                    Resources res = Resources.getTotalResourcesFromItems(u.getItems());
+                                    if (resName == ResourceName.FOOD && res.food > 0
+                                        || resName == ResourceName.WOOD && res.wood > 0
+                                        || resName == ResourceName.ORE && res.ore > 0) {
+                                        numWorkersAssigned += 1;
+                                        alreadyAssigned = true;
+                                    }
                                 }
-                            }
-                            if (!alreadyAssigned && wu.getGatherResourceGoal()
-                                .getTargetResourceName()
-                                .equals(resName)) {
-                                numWorkersAssigned += 1;
+                                if (!alreadyAssigned && wu.getGatherResourceGoal()
+                                    .getTargetResourceName()
+                                    .equals(resName)) {
+                                    numWorkersAssigned += 1;
+                                }
                             }
                         }
                     }
-                }
-                if (resName == ResourceName.FOOD) {
-                    numWorkersAssigned += numWorkersHunting;
-                }
+                    if (resName == ResourceName.FOOD) {
+                        numWorkersAssigned += numWorkersHunting;
+                    }
 
-                hudZones.add(MyRenderer.renderIconFrameWithBg(evt.getGuiGraphics(),
-                        ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/hud/icon_frame.png"),
-                        blitX + 69,
-                        blitY,
-                        iconFrameSize,
-                        iconBgColour
-                ));
+                    hudZones.add(MyRenderer.renderIconFrameWithBg(evt.getGuiGraphics(),
+                            ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/hud/icon_frame.png"),
+                            blitX + 69,
+                            blitY,
+                            iconFrameSize,
+                            iconBgColour
+                    ));
 
-                evt.getGuiGraphics().drawCenteredString(
-                        MC.font,
-                        String.valueOf(numWorkersAssigned),
-                        blitX + 69 + (iconFrameSize / 2),
-                        blitY + (iconSize / 2) + 1,
-                        0xFFFFFF
-                );
+                    evt.getGuiGraphics().drawCenteredString(
+                            MC.font,
+                            String.valueOf(numWorkersAssigned),
+                            blitX + 69 + (iconFrameSize / 2),
+                            blitY + (iconSize / 2) + 1,
+                            0xFFFFFF
+                    );
+                }
 
                 blitY += iconFrameSize - 1;
             }
@@ -1251,23 +1268,32 @@ public class HudClientEvents {
 
             blitY = resourceBlitYStart;
             final String finalSelPlayerName = selPlayerName;
-            for (String resourceName : new String[] { "food", "wood", "ore", "population" }) {
-                String locName = I18n.get("resources.reignofnether." + resourceName);
+            String[] resourceRowsTooltips = showEidosRow
+                ? new String[] { "food", "wood", "ore", "eidos", "population" }
+                : new String[] { "food", "wood", "ore", "population" };
+            for (String resourceName : resourceRowsTooltips) {
                 List<FormattedCharSequence> tooltip;
-                String key = String.format("resources.reignofnether.%s", resourceName);
-                if (resourceName.equals("population")) {
-                    tooltip = List.of(FormattedCharSequence.forward(I18n.get("hud.reignofnether.max_resources",
-                        I18n.get(key),
-                        GameruleClient.maxPopulation
-                    ), Style.EMPTY));
+                if (resourceName.equals("eidos")) {
+                    // eidos is vanilla XP relabelled - not part of the Resources data model, so
+                    // it gets its own lang key instead of the shared resources.reignofnether.%s pattern
+                    tooltip = List.of(FormattedCharSequence.forward(I18n.get("resources.reignofnether.eidos"), Style.EMPTY));
                 } else {
-                    tooltip = List.of(FormattedCharSequence.forward(I18n.get(key), Style.EMPTY));
+                    String key = String.format("resources.reignofnether.%s", resourceName);
+                    if (resourceName.equals("population")) {
+                        tooltip = List.of(FormattedCharSequence.forward(I18n.get("hud.reignofnether.max_resources",
+                            I18n.get(key),
+                            GameruleClient.maxPopulation
+                        ), Style.EMPTY));
+                    } else {
+                        tooltip = List.of(FormattedCharSequence.forward(I18n.get(key), Style.EMPTY));
+                    }
                 }
                 if (mouseX >= blitX && mouseY >= blitY && mouseX < blitX + iconFrameSize
                     && mouseY < blitY + iconFrameSize) {
                     MyRenderer.renderTooltip(evt.getGuiGraphics(), tooltip, mouseX + 5, mouseY);
                 }
-                if (mouseX >= blitX + 69 && mouseY >= blitY && mouseX < blitX + 69 + iconFrameSize
+                // eidos has no assigned-worker column, so no second tooltip hit-zone for it
+                if (!resourceName.equals("eidos") && mouseX >= blitX + 69 && mouseY >= blitY && mouseX < blitX + 69 + iconFrameSize
                     && mouseY < blitY + iconFrameSize) {
                     List<FormattedCharSequence> tooltipWorkersAssigned;
                     if (resourceName.equals("population")) {
