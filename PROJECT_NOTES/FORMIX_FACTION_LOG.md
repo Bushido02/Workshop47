@@ -16,10 +16,57 @@ Reign of Nether (Forge 1.20.1). Веду его, чтобы в следующе�
 уроки. Если что-то в архиве противоречит этому разделу — прав ЭТОТ раздел,
 архив мог устареть.
 
-**Последнее обновление:** 23.07.2026 (сессия про баланс population)
+**Последнее обновление:** 25.07.2026 (population Warrior + диагностика Hive supply — В ПРОЦЕССЕ)
 
-**НОВОЕ: исправлен настоящий баг population supply у FormixHive + баланс
-стартовых worker'ов.** Пользователь заметил, что главное здание Formix не
+**НОВОЕ: исправлен баг "Warrior не считается в занятом населении, а Worker
+считается".** Причина найдена сразу, без диагностики — это была не
+программная ошибка, а конфиг: `ReignOfNetherCommonConfigs.UnitCosts.
+FORMIX_WARRIOR` имел `population=0` (последний числовой параметр в
+`ResourceCostConfigEntry.Unit(food, wood, ore, seconds, population, ...)`),
+пока `FORMIX_WORKER` имел `population=1`. Занятое население считается как
+сумма `unit.getCost().population` по всем живым юнитам игрока
+(`UnitServerEvents.getCurrentPopulation`) — конверсия worker↔warrior не
+трогает population вручную нигде в коде, значение берётся из конфига
+юнита в момент подсчёта. Раз у warrior было `0` — при конверсии в него он
+переставал учитываться в занятом населении, при обратной конверсии в
+worker снова учитывался.
+
+**Исправлено:** `FORMIX_WARRIOR` теперь `population=1`
+(`ReignOfNetherCommonConfigs.java`, строка с `UnitCosts.FORMIX_WARRIOR`).
+Больше никаких изменений не потребовалось — сама механика подсчёта
+общая для всего проекта и не Formix-специфична, работает "как есть" для
+корректно настроенного конфига.
+
+**НЕЗАВЕРШЕНО — баг "FormixHive не даёт population supply, всегда 0/0"
+СТАЛ ОЖИДАТЬ ДИАГНОСТИКИ ОТ ПОЛЬЗОВАТЕЛЯ.** Прошёл всю цепочку статически
+(`ReignOfNetherCommonConfigs.BuildingCosts.FORMIX_HIVE` supply=5 →
+`ResourceCosts.FORMIX_HIVE.bakeValues()` → `ResourceCost.population` →
+`BuildingServerEvents.getTotalPopulationSupply()`) — КАЖДЫЙ шаг этой
+цепочки архитектурно идентичен рабочему `TownCentre` (Villagers), никаких
+Formix-специфичных отличий не найдено ни в одном файле. Раз статический
+анализ не выявил причину — добавлен ВРЕМЕННЫЙ диагностический
+`System.out.println` в `BuildingServerEvents.getTotalPopulationSupply()`
+(явно помечен комментарием `TEMP DEBUG ... remove after diagnosis`),
+выводящий для каждого здания игрока: имя класса, `isBuilt`,
+`cost.population`, `ownerName`. **Пользователь ещё НЕ прислал результат
+теста с этим логом** — до получения лога причина реального runtime-бага
+неизвестна, весь предыдущий статический разбор лишь ИСКЛЮЧИЛ наиболее
+очевидные гипотезы (baking-механизм, порядок регистрации, `isCapitol`,
+`createBuildingPlacement`), но не нашёл настоящую причину.
+
+**Следующий шаг в следующей сессии:** запросить у пользователя лог с
+префиксом `[FORMIX-DEBUG]` (появляется в консоли Run-панели IntelliJ при
+каждом вызове `getTotalPopulationSupply`, то есть довольно часто — не
+нужно разбирать весь лог, достаточно нескольких строк про FormixHive
+после постройки здания). По значению `isBuilt`/`costPopulation` в логе
+станет ясно, где именно рвётся цепочка. **После диагностики обязательно
+убрать `System.out.println`-блок** — он не должен уйти в финальную
+версию, это чисто временный инструмент.
+
+---
+
+**23.07.2026 (сессия про баланс population):** исправлен настоящий баг
+population supply у FormixHive + баланс стартовых worker'ов. Пользователь заметил, что главное здание Formix не
 даёт population supply, и что при старте матча спавнилось 3 worker'а
 вместо ожидаемых им 5 (расследование показало обратное — на самом деле
 спавнилось 5, но что-то работало некорректно из-за supply=0; пользователь
@@ -749,16 +796,101 @@ formix/panorama/*`) не существуют — добавление прив�
 `getNewRandomFaction()`/`getBackgroundLocation()`-подобный switch (строка
 ~30 того файла) только после того, как появятся панорамные текстуры.
 
+### 1.10 Population: Warrior не считался в занятом населении (исправлено) + Hive supply=0 (диагностика начата, НЕ завершена) — 25.07.2026
+
+**Часть A — исправлено.** Пользователь сообщил: при конверсии worker→warrior
+юнит "пропадал" из занятого населения (счётчик X/Y уменьшался), при
+обратной конверсии в worker снова появлялся. Причина найдена сразу:
+`ReignOfNetherCommonConfigs.UnitCosts.FORMIX_WARRIOR` был объявлен с
+`population=0` (`ResourceCostConfigEntry.Unit(food, wood, ore, seconds,
+population, ...)`), тогда как `FORMIX_WORKER` имел `population=1`.
+`UnitServerEvents.getCurrentPopulation()` суммирует `unit.getCost().
+population` по всем живым юнитам заново при каждом подсчёте — конверсия
+никак не трогает population вручную, значение просто берётся из текущего
+конфига юнита. Исправлено: `FORMIX_WARRIOR` теперь `population=1`.
+
+**Часть B — НЕ завершено, начата диагностика.** Отдельная жалоба:
+`FormixHive` после постройки не даёт population supply, счётчик всегда
+0/0 (при том что `BuildingCosts.FORMIX_HIVE` в конфиге содержит
+`supply=5`, ещё с сессии от 23.07 — раздел ниже "23.07.2026 (сессия про
+баланс population)"). Прошёл ВСЮ цепочку статически, не нашёл разницы с
+рабочим `TownCentre`:
+1. `ReignOfNetherCommonConfigs.BuildingCosts.FORMIX_HIVE` — `supply=5`,
+   4-й параметр `Building(food, wood, ore, supply, ...)`, синтаксически
+   верно.
+2. `ResourceCosts.FORMIX_HIVE.bakeValues(ReignOfNetherCommonConfigs.
+   BuildingCosts.FORMIX_HIVE)` — вызывается в `ResourceCosts.
+   deferredLoadResourceCosts()`, которая в свою очередь вызывается и на
+   сервере (`ReignOfNether.java`), и на клиенте (`ConfigClientEvents.java`)
+   — идентично другим зданиям, не Formix-специфично.
+3. `ResourceCost.bakeValues()` читает `rcce.getPopulation()` →
+   `this.POPULATION.get()` (ForgeConfigSpec-значение) — стандартный,
+   работающий у всех зданий путь.
+4. `FormixHive.cost = ResourceCosts.FORMIX_HIVE` — `public final static`
+   поле, тот же паттерн, что `TownCentre.cost = ResourceCosts.
+   TOWN_CENTRE` (проверено построчным сравнением обоих файлов).
+5. `Building(String structureName, ResourceCost cost, boolean isCapitol)`
+   конструктор — просто `this.cost = cost;` (присваивание ссылки, не
+   копия) — значит поздний `bakeValues()` обязан быть виден через
+   `FormixHive.cost.population` тоже, т.к. это тот же объект в памяти.
+6. `FormixHive()` конструктор — `super(structureName, cost, true)`,
+   `isCapitol=true` передан верно (важно, т.к. `isCapitol` используется в
+   других местах — граница застройки и т.д., раздел "22.07.2026,
+   продолжение" — но не влияет на `getTotalPopulationSupply()` напрямую,
+   проверено, что этот метод его не читает).
+7. `Buildings.FORMIX_HIVE = register(..., new FormixHive())` — стандартная
+   регистрация, идентична другим зданиям.
+8. `BuildingServerEvents.getTotalPopulationSupply(ownerName)` — цикл по
+   `buildings`, условие `building.ownerName.equals(ownerName) &&
+   building.isBuilt`, суммирует `building.getBuilding().cost.population`
+   — НЕТ никакой фильтрации по типу/классу здания, работает одинаково для
+   любого `BuildingPlacement`.
+9. `BuildingPlacement.isBuilt = true` выставляется в общем, не
+   Formix-специфичном коде (сработавший `discardStructureVoidBlocks()`/
+   завершение стройки) — не должно зависеть от того, что `FormixHive`
+   временно использует чужую NBT-структуру `town_centre` (сам механизм
+   постройки/структур не завязан на семантику "что это за здание", только
+   на геометрию блоков).
+
+**Ни на одном из этих 9 шагов не найдено расхождения с рабочим
+`TownCentre`.** Вывод: причина либо в чём-то, не видимом статическим
+анализом (реальный порядок событий Forge при загрузке, специфика
+конкретной игровой сессии пользователя), либо в файле/месте, которое ещё
+не проверено (например `ResourceCostsClientboundPacket`/сетевая
+синхронизация supply на клиент — не проверялось в этой сессии, стоит
+посмотреть в следующей, если лог не даст ответа сразу).
+
+**Временный диагностический код добавлен** — `System.out.println` внутри
+`BuildingServerEvents.getTotalPopulationSupply()`, помечен комментарием
+`TEMP DEBUG (Formix population supply investigation, remove after
+diagnosis)`. Выводит для каждого здания текущего игрока: класс, `isBuilt`,
+`cost.population`, `ownerName`, с префиксом `[FORMIX-DEBUG]` для лёгкого
+поиска в консоли. **Ждём от пользователя лог после теста** (построить
+Hive, зайти в игру, глянуть консоль сервера/Run-панель IntelliJ).
+
+**ОБЯЗАТЕЛЬНО удалить `System.out.println`-блок после получения
+диагностики и исправления настоящей причины** — это не должно остаться в
+финальной версии кода, это чисто временный инструмент этой сессии.
+
+**Урок на будущее:** когда статический анализ (сверка кода 1:1 с рабочим
+референсом) не находит расхождений, но баг реально воспроизводится —
+не стоит продолжать бесконечно искать "ещё одну гипотезу" вслепую;
+эффективнее сразу добавить точечный диагностический лог и получить
+реальные runtime-значения, чем перебирать теоретические причины одну за
+другой. Диагностика должна быть явно помечена как временная (комментарий
++ единообразный префикс в логе), чтобы не забыть убрать её после
+  использования.
+
 ## 2. Концепция фракции
 
 - Фракция называется **Formix**.
 - Основа — **полностью кастомные мобы** (не ре-текстур ваниль-моба), модели
   делаются в Blockbench пользователем.
 - **Worker/Warrior механика** как у Villagers/Militia:
-  - `FormixWorkerUnit` — рабочий: собирает ресурсы, строит/чинит здания.
-  - `FormixWarriorUnit` — боевая форма, получается конверсией из worker'а
-    у главного здания (`FormixHive`), возврат обратно возможен через
-    ability "Back to Work".
+    - `FormixWorkerUnit` — рабочий: собирает ресурсы, строит/чинит здания.
+    - `FormixWarriorUnit` — боевая форма, получается конверсией из worker'а
+      у главного здания (`FormixHive`), возврат обратно возможен через
+      ability "Back to Work".
 - Один тип production-здания на этом этапе: `FormixHive` (аналог TownCentre),
   производит только `FormixWorkerUnit`. Warrior производится ТОЛЬКО через
   конверсию, отдельного Prod-класса для него нет и не нужно.
@@ -833,27 +965,27 @@ formix/panorama/*`) не существуют — добавление прив�
 1. Открой экспортированный `.java` класс модели (Blockbench → File → Export →
    Export Java Entity). Скопируй его содержимое.
 2. В `FormixWorkerModel.java` / `FormixWarriorModel.java` замени:
-   - Поле `LAYER_LOCATION` — оставь как есть (или возьми имя из экспорта,
-     не важно, лишь бы совпадало с `ClientModEvents` регистрацией).
-   - Тело `createBodyLayer()` — вставь из экспорта.
-   - Список полей `ModelPart` (сейчас `body/head/left_arm/right_arm/left_leg/right_leg`)
-     — подстрой под реальные названия частей твоей модели, а также
-     обнови `setupAnim()`, если имена частей отличаются.
-   - Класс `KeyframeHierarchicalModel<T>` как родитель можно оставить, если
-     будешь использовать keyframe-анимации (рекомендуется, как у Wraith).
-     Если Blockbench-экспорт даёт другой базовый класс — подстройся под него,
-     смотри как это сделано в `unit/modelling/models/WraithModel.java` для
-     референса реального экспорта.
+    - Поле `LAYER_LOCATION` — оставь как есть (или возьми имя из экспорта,
+      не важно, лишь бы совпадало с `ClientModEvents` регистрацией).
+    - Тело `createBodyLayer()` — вставь из экспорта.
+    - Список полей `ModelPart` (сейчас `body/head/left_arm/right_arm/left_leg/right_leg`)
+      — подстрой под реальные названия частей твоей модели, а также
+      обнови `setupAnim()`, если имена частей отличаются.
+    - Класс `KeyframeHierarchicalModel<T>` как родитель можно оставить, если
+      будешь использовать keyframe-анимации (рекомендуется, как у Wraith).
+      Если Blockbench-экспорт даёт другой базовый класс — подстройся под него,
+      смотри как это сделано в `unit/modelling/models/WraithModel.java` для
+      референса реального экспорта.
 3. Замени `unit/modelling/animations/FormixAnimations.java` на экспорт
    анимаций из Blockbench (File → Export → Export Animations). Оставь
    имя класса `FormixAnimations` и статические поля `IDLE`/`WALK`/`ATTACK`
    (или добавь новые и обнови ссылки в `FormixWorkerUnit`/`FormixWarriorUnit`
    / `*Model.java`, где они вызываются).
 4. Замени PNG-текстуры:
-   - `assets/reignofnether/textures/entities/formix_worker_unit.png`
-   - `assets/reignofnether/textures/entities/formix_warrior_unit.png`
-   Просто перезапиши файл тем же именем — рендереры уже на него ссылаются,
-   ничего в Java менять не надо.
+    - `assets/reignofnether/textures/entities/formix_worker_unit.png`
+    - `assets/reignofnether/textures/entities/formix_warrior_unit.png`
+      Просто перезапиши файл тем же именем — рендереры уже на него ссылаются,
+      ничего в Java менять не надо.
 5. Если хочешь визуально более уникальную иконку в UI (сейчас общий
    worker.png плоского цвета) — обнови также
    `textures/mobheads/formix_worker.png`.
@@ -871,9 +1003,9 @@ NBT-схематику Villagers, чтобы всё компилировалос
    собственный workflow/скрипт у автора мода — проверь `TODO.txt`/
    `TODO_backlog.txt` в корне репо, там могут быть заметки автора).
 2. Сохрани файл как:
-   - `src/main/resources/assets/reignofnether/structures/formix_hive.nbt`
-   - `src/main/resources/data/reignofnether/structures/formix_hive.nbt`
-   (оба пути — так сделано для `hoglin_stables.nbt`, см. пример).
+    - `src/main/resources/assets/reignofnether/structures/formix_hive.nbt`
+    - `src/main/resources/data/reignofnether/structures/formix_hive.nbt`
+      (оба пути — так сделано для `hoglin_stables.nbt`, см. пример).
 3. В `FormixHive.java` смени `structureName = "town_centre"` на
    `structureName = "formix_hive"`.
 4. Обнови `portraitBlock`/`icon` на подходящий блок вместо `Blocks.WARPED_NYLIUM`.
@@ -911,15 +1043,15 @@ NBT-схематику Villagers, чтобы всё компилировалос
   warrior остаётся конвертированным, аналог `TownCentre.MILITIA_RANGE`.
   Можно потом вынести в конфиг, если понадобится балансировка.
 - **Стоимости (config defaults)**:
-  - `FormixWorker`: 50 food, 15 сек, 1 pop (= Grunt/Villager baseline)
-  - `FormixWarrior`: 0 food/food-cost, но "стоит" 20 wood (символическая
-    стоимость конверсии, т.к. Prod-класса нет — это просто дефолтное
-    значение конфига, реально не расходуется при конверсии сейчас).
-    **Пересмотри это значение**, возможно стоит сделать конверсию
-    полностью бесплатной (0 во всех полях) либо явно списывать ресурсы в
-    `convertToWarrior()`, если хочешь баланс "конверсия стоит ресурсов".
-  - `FormixHive`: 400 wood, 0 ore (= похоже на TownCentre, но без ore-cost
-    — подправь под баланс своей игры).
+    - `FormixWorker`: 50 food, 15 сек, 1 pop (= Grunt/Villager baseline)
+    - `FormixWarrior`: 0 food/food-cost, но "стоит" 20 wood (символическая
+      стоимость конверсии, т.к. Prod-класса нет — это просто дефолтное
+      значение конфига, реально не расходуется при конверсии сейчас).
+      **Пересмотри это значение**, возможно стоит сделать конверсию
+      полностью бесплатной (0 во всех полях) либо явно списывать ресурсы в
+      `convertToWarrior()`, если хочешь баланс "конверсия стоит ресурсов".
+    - `FormixHive`: 400 wood, 0 ore (= похоже на TownCentre, но без ore-cost
+      — подправь под баланс своей игры).
 
 ## 6. Известные ограничения текущего MVP (сознательно упрощено)
 
@@ -1100,5 +1232,3 @@ Knowledge или коннектор, если станет доступен) —
 `/formix-stat eidos 120 <своё_имя>` и т.д. — числа должны появиться в
 кастомном HUD внизу экрана, ваниль-сердца/полоска опыта должны пропасть
 полностью (в любом режиме игры, не только в RTS-матче).
-
-

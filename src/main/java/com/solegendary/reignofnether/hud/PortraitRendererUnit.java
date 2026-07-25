@@ -24,6 +24,7 @@ import com.solegendary.reignofnether.unit.interfaces.AttackerUnit;
 import com.solegendary.reignofnether.unit.interfaces.HeroUnit;
 import com.solegendary.reignofnether.unit.interfaces.Unit;
 import com.solegendary.reignofnether.unit.interfaces.WorkerUnit;
+import com.solegendary.reignofnether.unit.units.formix.FormixWorkerUnit;
 import com.solegendary.reignofnether.unit.units.monsters.CreeperUnit;
 import com.solegendary.reignofnether.unit.units.monsters.ZombieUnit;
 import com.solegendary.reignofnether.unit.units.piglins.BruteUnit;
@@ -129,7 +130,7 @@ public class PortraitRendererUnit<T extends LivingEntity, M extends EntityModel<
         if (!checkedFreshAnimations && HudClientEvents.hudSelectedEntity != null) {
             boolean b = false;
             for (String s : MC.getResourceManager().listPacks().map(PackResources::packId)
-                .toList()) {
+                    .toList()) {
                 if (s.toLowerCase().contains("freshanimations")) {
                     b = true;
                     break;
@@ -382,7 +383,7 @@ public class PortraitRendererUnit<T extends LivingEntity, M extends EntityModel<
 
         ArrayList<RenderedStat> renderedStats = new ArrayList<>();
 
-        if (unit instanceof AttackerUnit attackerUnit) {
+        if (unit instanceof AttackerUnit attackerUnit && !(unit instanceof FormixWorkerUnit)) {
             double atkDmg = attackerUnit.getUnitAttackDamage() + AttackerUnit.getWeaponDamageModifier(attackerUnit);
             if (unit instanceof CreeperUnit cUnit && cUnit.isPowered()) {
                 atkDmg *= CreeperUnit.CHARGED_DAMAGE_MULT;
@@ -538,27 +539,27 @@ public class PortraitRendererUnit<T extends LivingEntity, M extends EntityModel<
 
             boolean isMouseOver =
                     mouseX >= blitXIcon - 1 &&
-                    mouseY >= blitYIcon - 1 &&
-                    mouseX < blitXIcon + statsWidth - 11 &&
-                    mouseY < blitYIcon + 9;
+                            mouseY >= blitYIcon - 1 &&
+                            mouseX < blitXIcon + statsWidth - 11 &&
+                            mouseY < blitYIcon + 9;
 
             // highlight on hover
             if (isMouseOver) {
                 guiGraphics.fill( // x1,y1, x2,y2,
-                    blitXIcon - 1,
-                    blitYIcon - 1,
-                    blitXIcon + statsWidth - 11,
-                    blitYIcon + 9,
-                    0x32FFFFFF);
+                        blitXIcon - 1,
+                        blitYIcon - 1,
+                        blitXIcon + statsWidth - 11,
+                        blitYIcon + 9,
+                        0x32FFFFFF);
                 MyRenderer.renderTooltip(guiGraphics, unit.getStatTooltip(renderedStat.type), mouseX, mouseY);
             }
 
             guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                renderedStat.text,
-                blitXIcon + 13 + renderedStat.textXOffset,
-                blitYIcon,
-                renderedStat.colour
+                    Minecraft.getInstance().font,
+                    renderedStat.text,
+                    blitXIcon + 13 + renderedStat.textXOffset,
+                    blitYIcon,
+                    renderedStat.colour
             );
             blitYIcon += 10;
         }
@@ -617,15 +618,15 @@ public class PortraitRendererUnit<T extends LivingEntity, M extends EntityModel<
 
         // prep strings/icons to render
         List<ResourceLocation> textureStatIcons = List.of(ResourceLocation.fromNamespaceAndPath("reignofnether",
-                "textures/icons/items/wheat.png"
-            ),
-            ResourceLocation.fromNamespaceAndPath("reignofnether", "textures/icons/items/wood.png"),
-            ResourceLocation.fromNamespaceAndPath("reignofnether", "textures/icons/items/iron_ore.png")
+                        "textures/icons/items/wheat.png"
+                ),
+                ResourceLocation.fromNamespaceAndPath("reignofnether", "textures/icons/items/wood.png"),
+                ResourceLocation.fromNamespaceAndPath("reignofnether", "textures/icons/items/iron_ore.png")
         );
 
         List<String> statStrings = List.of(String.valueOf(resources.food),
-            String.valueOf(resources.wood),
-            String.valueOf(resources.ore)
+                String.valueOf(resources.wood),
+                String.valueOf(resources.ore)
         );
 
         // render based on prepped strings/icons
@@ -634,11 +635,11 @@ public class PortraitRendererUnit<T extends LivingEntity, M extends EntityModel<
             if (!statStrings.get(i).equals("0")) {
                 MyRenderer.renderIcon(guiGraphics, textureStatIcons.get(i), blitXIcon, blitYIcon, 8);
                 guiGraphics.drawString(
-                    Minecraft.getInstance().font,
-                    statStrings.get(i),
-                    blitXIcon + 12,
-                    blitYIcon,
-                    redText ? 0xFF2525 : 0xFFFFFF
+                        Minecraft.getInstance().font,
+                        statStrings.get(i),
+                        blitXIcon + 12,
+                        blitYIcon,
+                        redText ? 0xFF2525 : 0xFFFFFF
                 );
                 blitYIcon += 10;
             }

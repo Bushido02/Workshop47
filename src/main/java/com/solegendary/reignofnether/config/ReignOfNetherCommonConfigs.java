@@ -229,7 +229,7 @@ public class ReignOfNetherCommonConfigs {
         // Piglins
         public static final ResourceCostConfigEntry GRUNT = ResourceCostConfigEntry.Unit(50,0,0,15,1, ResourceCosts.GRUNT, "Grunt Config");
         public static final ResourceCostConfigEntry FORMIX_WORKER = ResourceCostConfigEntry.Unit(50,0,0,15,1, ResourceCosts.FORMIX_WORKER, "Formix Worker Config");
-        public static final ResourceCostConfigEntry FORMIX_WARRIOR = ResourceCostConfigEntry.Unit(0,20,0,0,0, ResourceCosts.FORMIX_WARRIOR, "Formix Warrior Config"); // produced only via worker conversion, no direct production cost
+        public static final ResourceCostConfigEntry FORMIX_WARRIOR = ResourceCostConfigEntry.Unit(0,20,0,0,1, ResourceCosts.FORMIX_WARRIOR, "Formix Warrior Config"); // produced only via worker conversion, no direct production cost
         public static final ResourceCostConfigEntry BRUTE = ResourceCostConfigEntry.Unit(120,0,0,25,2, ResourceCosts.BRUTE, "Brute Config");
         public static final ResourceCostConfigEntry HEADHUNTER = ResourceCostConfigEntry.Unit(90,60,0,25,2, ResourceCosts.HEADHUNTER, "Headhunter Config");
         public static final ResourceCostConfigEntry MARAUDER = ResourceCostConfigEntry.Unit(175,75,75,40,4, ResourceCosts.MARAUDER, "Marauder Config");

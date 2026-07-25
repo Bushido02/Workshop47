@@ -185,11 +185,11 @@ public class BuildingServerEvents {
             BuildingServerEvents.getBuildings().clear();
             buildingData.buildings.forEach(b -> {
                 BuildingPlacement building = BuildingUtils.getNewBuildingPlacement(b.building,
-                    level,
-                    b.originPos,
-                    b.rotation,
-                    b.ownerName,
-                    b.isDiagonalBridge
+                        level,
+                        b.originPos,
+                        b.rotation,
+                        b.ownerName,
+                        b.isDiagonalBridge
                 );
 
                 if (building != null) {
@@ -295,24 +295,24 @@ public class BuildingServerEvents {
 
     @Nullable
     public static BuildingPlacement placeBuilding(
-        Building building,
-        BlockPos pos,
-        Rotation rotation,
-        String ownerName,
-        int[] builderUnitIds,
-        boolean queue,
-        boolean isDiagonalBridge,
-        boolean fromCommand // ignore resources, terrain or any other restrictions and self-build
+            Building building,
+            BlockPos pos,
+            Rotation rotation,
+            String ownerName,
+            int[] builderUnitIds,
+            boolean queue,
+            boolean isDiagonalBridge,
+            boolean fromCommand // ignore resources, terrain or any other restrictions and self-build
     ) {
         if (serverLevel == null)
             return null;
 
         BuildingPlacement newBuilding = BuildingUtils.getNewBuildingPlacement(building,
-            serverLevel,
-            pos,
-            rotation,
-            ownerName,
-            isDiagonalBridge
+                serverLevel,
+                pos,
+                rotation,
+                ownerName,
+                isDiagonalBridge
         );
         boolean buildingExists = false;
         for (BuildingPlacement placement : buildings) {
@@ -330,7 +330,7 @@ public class BuildingServerEvents {
                 boolean canAffordPop = false;
                 for (Resources resources : ResourcesServerEvents.resourcesList) {
                     if (resources.ownerName.equals(ownerName)
-                         && (currentPop + ResourceCosts.IRON_GOLEM.population) <= popSupply) {
+                            && (currentPop + ResourceCosts.IRON_GOLEM.population) <= popSupply) {
                         canAffordPop = true;
                         break;
                     }
@@ -349,8 +349,8 @@ public class BuildingServerEvents {
 
             if (fromCommand || newBuilding.canAfford(ownerName)) {
                 if (fromCommand ||
-                    (serverLevel.getGameRules().getRule(GameRuleRegistrar.SLANTED_BUILDING).get() &&
-                    !(newBuilding.getBuilding() instanceof AbstractBridge))) {
+                        (serverLevel.getGameRules().getRule(GameRuleRegistrar.SLANTED_BUILDING).get() &&
+                                !(newBuilding.getBuilding() instanceof AbstractBridge))) {
                     BuildingUtils.clearBuildingArea(newBuilding);
                 }
                 buildings.add(newBuilding);
@@ -381,17 +381,17 @@ public class BuildingServerEvents {
                 }
 
                 BuildingClientboundPacket.placeBuilding(pos,
-                    building,
-                    rotation,
-                    newBuilding.getBuilding() instanceof AbstractBridge ? "" : ownerName,
-                    -1,
-                    newBuilding.blockPlaceQueue.size(),
-                    isDiagonalBridge,
-                    0,
-                    false,
-                    PortalPlacement.PortalType.BASIC,
-                    pos,
-                    false
+                        building,
+                        rotation,
+                        newBuilding.getBuilding() instanceof AbstractBridge ? "" : ownerName,
+                        -1,
+                        newBuilding.blockPlaceQueue.size(),
+                        isDiagonalBridge,
+                        0,
+                        false,
+                        PortalPlacement.PortalType.BASIC,
+                        pos,
+                        false
                 );
                 if (!fromCommand) {
                     ResourcesServerEvents.addSubtractResources(new Resources(ownerName,
@@ -408,9 +408,9 @@ public class BuildingServerEvents {
 
                 for (LivingEntity entity : UnitServerEvents.getAllUnits()) {
                     if (entity instanceof Unit unit && unit.getOwnerName().equals(ownerName) &&
-                        newBuilding.isPosInsideBuilding(entity.getOnPos().above().above()) &&
-                        (unit.getMoveGoal().getMoveTarget() == null ||
-                         newBuilding.isPosInsideBuilding(unit.getMoveGoal().getMoveTarget()))) {
+                            newBuilding.isPosInsideBuilding(entity.getOnPos().above().above()) &&
+                            (unit.getMoveGoal().getMoveTarget() == null ||
+                                    newBuilding.isPosInsideBuilding(unit.getMoveGoal().getMoveTarget()))) {
                         moveNonBuildersAwayFromBuildingFoundations(entity, builderUnitIds, newBuilding);
                     }
                 }
@@ -483,14 +483,14 @@ public class BuildingServerEvents {
 
     private static void warnInsufficientResources(BuildingPlacement newBuilding) {
         ResourcesClientboundPacket.warnInsufficientResources(newBuilding.ownerName,
-            ResourcesServerEvents.canAfford(newBuilding.ownerName, ResourceName.FOOD, newBuilding.getBuilding().cost.food),
-            ResourcesServerEvents.canAfford(newBuilding.ownerName, ResourceName.WOOD, newBuilding.getBuilding().cost.wood),
-            ResourcesServerEvents.canAfford(newBuilding.ownerName, ResourceName.ORE, newBuilding.getBuilding().cost.ore)
+                ResourcesServerEvents.canAfford(newBuilding.ownerName, ResourceName.FOOD, newBuilding.getBuilding().cost.food),
+                ResourcesServerEvents.canAfford(newBuilding.ownerName, ResourceName.WOOD, newBuilding.getBuilding().cost.wood),
+                ResourcesServerEvents.canAfford(newBuilding.ownerName, ResourceName.ORE, newBuilding.getBuilding().cost.ore)
         );
     }
 
     private static void moveNonBuildersAwayFromBuildingFoundations(
-        LivingEntity entity, int[] builderUnitIds, BuildingPlacement newBuilding
+            LivingEntity entity, int[] builderUnitIds, BuildingPlacement newBuilding
     ) {
         boolean b = true;
         for (int id : builderUnitIds) {
@@ -501,11 +501,11 @@ public class BuildingServerEvents {
         }
         if (b) {
             UnitServerEvents.addActionItem(((Unit) entity).getOwnerName(),
-                UnitAction.MOVE,
-                -1,
-                new int[] { entity.getId() },
-                newBuilding.getClosestGroundPos(entity.getOnPos(), 2),
-                new BlockPos(0, 0, 0)
+                    UnitAction.MOVE,
+                    -1,
+                    new int[] { entity.getId() },
+                    newBuilding.getClosestGroundPos(entity.getOnPos(), 2),
+                    new BlockPos(0, 0, 0)
             );
         }
     }
@@ -514,7 +514,7 @@ public class BuildingServerEvents {
         if (building == null)
             return;
         if (building.isBuilt && !SandboxServer.isSandboxPlayer(playerName) &&
-            BuildingUtils.getTotalCompletedBuildingsOwned(false, building.ownerName) == 1)
+                BuildingUtils.getTotalCompletedBuildingsOwned(false, building.ownerName) == 1)
             return;
         if (building.getBuilding().capturable && !SandboxServer.isAnyoneASandboxPlayer())
             return;
@@ -560,10 +560,18 @@ public class BuildingServerEvents {
         }
 
         int totalPopulationSupply = 0;
-        for (BuildingPlacement building : buildings)
+        for (BuildingPlacement building : buildings) {
+            // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
+            if (building.ownerName.equals(ownerName)) {
+                System.out.println("[FORMIX-DEBUG] building=" + building.getBuilding().getClass().getSimpleName()
+                        + " isBuilt=" + building.isBuilt
+                        + " costPopulation=" + building.getBuilding().cost.population
+                        + " ownerName=" + building.ownerName);
+            }
             if (building.ownerName.equals(ownerName) && building.isBuilt) {
                 totalPopulationSupply += building.getBuilding().cost.population;
             }
+        }
         return Math.min(UnitServerEvents.maxPopulation, totalPopulationSupply);
     }
 
@@ -662,8 +670,8 @@ public class BuildingServerEvents {
                 BlockPos bp = evt.getSpawner().getSpawnerBlockEntity().getBlockPos();
                 BuildingPlacement bpl = BuildingUtils.findBuilding(false, bp);
                 if (bpl != null &&
-                   (bpl.getBuilding() instanceof Dungeon ||
-                    bpl.getBuilding() instanceof FlameSanctuary)) {
+                        (bpl.getBuilding() instanceof Dungeon ||
+                                bpl.getBuilding() instanceof FlameSanctuary)) {
                     evt.getEntity().discard();
                 }
             }
@@ -832,12 +840,12 @@ public class BuildingServerEvents {
             evt.setCanceled(true);
 
             if (evt.getEntity() instanceof ServerPlayer player &&
-                !player.isSpectator() &&
-                (AlliancesServerEvents.isAllied(player.getName().getString(), building.ownerName) ||
-                building.getBuilding() instanceof NeutralTransportPortal ||
-                player.getName().getString().equals(building.ownerName)) &&
-                building instanceof PortalPlacement portal &&
-                portal.hasDestination()) {
+                    !player.isSpectator() &&
+                    (AlliancesServerEvents.isAllied(player.getName().getString(), building.ownerName) ||
+                            building.getBuilding() instanceof NeutralTransportPortal ||
+                            player.getName().getString().equals(building.ownerName)) &&
+                    building instanceof PortalPlacement portal &&
+                    portal.hasDestination()) {
 
                 player.teleportTo(portal.destination.getX(), portal.destination.getY(), portal.destination.getZ());
                 building.level.playSound(null, building.centrePos, SoundEvents.ENDERMAN_TELEPORT,
