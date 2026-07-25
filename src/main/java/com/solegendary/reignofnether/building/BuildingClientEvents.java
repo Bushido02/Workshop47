@@ -78,6 +78,9 @@ public class BuildingClientEvents {
 
     static final Minecraft MC = Minecraft.getInstance();
 
+    // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
+    private static long lastPopSupplyDebugLogMs = 0;
+
     public static int getTotalPopulationSupply(String playerName) {
         if (ResearchClient.hasCheat("foodforthought")) {
             return GameruleClient.maxPopulation;
@@ -88,6 +91,26 @@ public class BuildingClientEvents {
             if (building.ownerName.equals(playerName) && building.isBuilt) {
                 totalPopulationSupply += building.getBuilding().cost.population;
             }
+
+        // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
+        // throttled to once per second to avoid flooding the console (this method runs every render frame)
+        long nowMs = System.currentTimeMillis();
+        if (nowMs - lastPopSupplyDebugLogMs > 1000) {
+            lastPopSupplyDebugLogMs = nowMs;
+            StringBuilder sb = new StringBuilder();
+            sb.append("[FORMIX-DEBUG-CLIENT-SUPPLY] playerName='").append(playerName)
+                    .append("' result=").append(totalPopulationSupply)
+                    .append(" buildings=[");
+            for (BuildingPlacement building : buildings) {
+                sb.append(building.getBuilding().getClass().getSimpleName())
+                        .append("(owner='").append(building.ownerName)
+                        .append("',isBuilt=").append(building.isBuilt)
+                        .append(",costPopulation=").append(building.getBuilding().cost.population)
+                        .append(") ");
+            }
+            sb.append("]");
+            System.out.println(sb);
+        }
 
         return Math.min(GameruleClient.maxPopulation, totalPopulationSupply);
     }
@@ -234,16 +257,16 @@ public class BuildingClientEvents {
             RenderSystem.activeTexture(33985);
             MC.gameRenderer.overlayTexture.texture.bind();
             nativeimage.upload(0,
-                0,
-                0,
-                0,
-                0,
-                nativeimage.getWidth(),
-                nativeimage.getHeight(),
-                false,
-                true,
-                false,
-                false
+                    0,
+                    0,
+                    0,
+                    0,
+                    nativeimage.getWidth(),
+                    nativeimage.getHeight(),
+                    false,
+                    true,
+                    false,
+                    false
             );
             RenderSystem.activeTexture(33984);
         }
@@ -269,7 +292,7 @@ public class BuildingClientEvents {
         var vertexConsumer = MC.renderBuffers().bufferSource().getBuffer(RenderType.entityTranslucent(rl));
         for (BuildingBlock block : blocksToDraw) {
             if (buildingToPlace != null && isBuildingToPlaceABridge()
-                && MC.level != null && AbstractBridge.shouldCullBlock(originPos.offset(0, 1, 0), block, MC.level)) {
+                    && MC.level != null && AbstractBridge.shouldCullBlock(originPos.offset(0, 1, 0), block, MC.level)) {
                 continue;
             }
 
@@ -282,7 +305,7 @@ public class BuildingClientEvents {
             matrix.pushPose();
             Entity cam = MC.cameraEntity;
             matrix.translate( // bp is center of block whereas render is corner, so offset by 0.5
-                bp.getX() - cam.getX(), bp.getY() - cam.getY() - 0.6, bp.getZ() - cam.getZ());
+                    bp.getX() - cam.getX(), bp.getY() - cam.getY() - 0.6, bp.getZ() - cam.getZ());
 
             int overlayColour = valid ? OverlayTexture.pack(0, 0) : OverlayTexture.pack(0, 3);
             if (forceColour == 1) {
@@ -291,14 +314,14 @@ public class BuildingClientEvents {
                 overlayColour = OverlayTexture.pack(0, 3);
             }
             renderer.renderSingleBlock(bs,
-                matrix,
-                MC.renderBuffers().crumblingBufferSource(),
-                // don't render over other stuff
-                15728880,
-                // red if invalid, else green
-                overlayColour,
-                net.minecraftforge.client.model.data.ModelData.EMPTY,
-                null
+                    matrix,
+                    MC.renderBuffers().crumblingBufferSource(),
+                    // don't render over other stuff
+                    15728880,
+                    // red if invalid, else green
+                    overlayColour,
+                    net.minecraftforge.client.model.data.ModelData.EMPTY,
+                    null
             );
 
             matrix.popPose();
@@ -453,7 +476,7 @@ public class BuildingClientEvents {
                 }
                 BlockPos bp = block.getBlockPos();
                 if (bp.getX() >= minPos.getX() && bp.getX() <= maxPos.getX() && bp.getY() >= minPos.getY()
-                    && bp.getY() <= maxPos.getY() && bp.getZ() >= minPos.getZ() && bp.getZ() <= maxPos.getZ()) {
+                        && bp.getY() <= maxPos.getY() && bp.getZ() >= minPos.getZ() && bp.getZ() <= maxPos.getZ()) {
                     return true;
                 }
             }
@@ -505,7 +528,7 @@ public class BuildingClientEvents {
         int placeableBlocks = 0;
         for (BuildingBlock block : blocksToDraw)
             if (!AbstractBridge.shouldCullBlock(originPos.offset(0, 1, 0), block, MC.level) && !block.getBlockState()
-                .isAir()) {
+                    .isAir()) {
                 placeableBlocks += 1;
             }
         if (placeableBlocks < MIN_BRIDGE_SIZE) {
@@ -533,7 +556,7 @@ public class BuildingClientEvents {
                 if (block.getBlockPos().getY() == 0) {
                     bridgeBlocks += 1;
                     if (!bsWorld.getFluidState().isEmpty() || bsWorld.getBlock() instanceof SeagrassBlock
-                        || bsWorld.getBlock() instanceof KelpBlock) {
+                            || bsWorld.getBlock() instanceof KelpBlock) {
                         waterBlocksClipping += 1;
                     }
                 }
@@ -705,8 +728,8 @@ public class BuildingClientEvents {
                     LivingEntity le = selProdBuilding.getRallyPointEntity();
                     boolean isRed = selProdBuilding.attackRally;
                     MyRenderer.drawLine(evt.getPoseStack(), vertexConsumerLine, new Vec3(selBuilding.centrePos.getX(),
-                        selBuilding.centrePos.getY(),
-                        selBuilding.centrePos.getZ()
+                            selBuilding.centrePos.getY(),
+                            selBuilding.centrePos.getZ()
                     ), new Vec3(le.getX(), le.getEyeY(), le.getZ()),  isRed ? 1 : 0, isRed ? 0 : 1, 0, a);
                     MyRenderer.drawLineBoxOutlineOnly(evt.getPoseStack(), vertexConsumerNoDepthLine, le.getBoundingBox(), isRed ? 1 : 0, isRed ? 0 : 1, 0, a, false);
                 }
@@ -748,8 +771,8 @@ public class BuildingClientEvents {
                     e.printStackTrace();
                 }
                 Rotation rotationDelta = List.of(0, 1).contains(bridgePlaceState)
-                                         ? Rotation.NONE
-                                         : Rotation.CLOCKWISE_90;
+                        ? Rotation.NONE
+                        : Rotation.CLOCKWISE_90;
                 buildingRotation = rotationDelta;
                 if (bridgePlaceState == 2) {
                     blocksToDraw.replaceAll(buildingBlock -> buildingBlock.move(MC.level, new BlockPos(-5, 0, 5)));
@@ -757,7 +780,7 @@ public class BuildingClientEvents {
                 blocksToDraw.replaceAll(buildingBlock -> buildingBlock.rotate(MC.level, rotationDelta));
             } else {
                 Rotation rotationDelta =
-                    evt.getScrollDelta() > 0 ? Rotation.CLOCKWISE_90 : Rotation.COUNTERCLOCKWISE_90;
+                        evt.getScrollDelta() > 0 ? Rotation.CLOCKWISE_90 : Rotation.COUNTERCLOCKWISE_90;
                 buildingRotation = buildingRotation.getRotated(rotationDelta);
                 blocksToDraw.replaceAll(buildingBlock -> buildingBlock.rotate(MC.level, rotationDelta));
             }
@@ -802,19 +825,19 @@ public class BuildingClientEvents {
                         ownerName = "Enemy";
 
                     BuildingServerboundPacket.placeAndQueueBuilding(building,
-                        isBuildingToPlaceABridge() && bridgePlaceState == 2 ? pos.offset(-5, 0, -5) : pos,
-                        buildingRotation,
-                        hudSelectedEntity instanceof Unit unit ? unit.getOwnerName() : ownerName,
-                        ids,
-                        isBridgeDiagonal()
+                            isBuildingToPlaceABridge() && bridgePlaceState == 2 ? pos.offset(-5, 0, -5) : pos,
+                            buildingRotation,
+                            hudSelectedEntity instanceof Unit unit ? unit.getOwnerName() : ownerName,
+                            ids,
+                            isBridgeDiagonal()
                     );
 
                     for (LivingEntity entity : getSelectedUnits()) {
                         if (entity instanceof Unit unit) {
                             unit.getCheckpoints().removeIf(c -> !c.isForEntity() && (c.bp == null || !BuildingUtils.isPosInsideAnyBuilding(true, c.bp)));
                             MiscUtil.addUnitCheckpoint(unit,
-                                CursorClientEvents.getPreselectedBlockPos().above(),
-                                false
+                                    CursorClientEvents.getPreselectedBlockPos().above(),
+                                    false
                             );
                             if (unit instanceof WorkerUnit workerUnit) {
                                 workerUnit.getBuildRepairGoal().ignoreNextCheckpoint = true;
@@ -831,7 +854,7 @@ public class BuildingClientEvents {
                     }
                     String ownerName = MC.player.getName().getString();
                     if (SandboxClientEvents.isSandboxPlayer(ownerName) && !hasSelectedWorkers &&
-                        !(buildingToPlace instanceof AbstractBridge)) {
+                            !(buildingToPlace instanceof AbstractBridge)) {
                         if (SandboxClientEvents.relationship == Relationship.NEUTRAL)
                             ownerName = "";
                         else if (SandboxClientEvents.relationship == Relationship.HOSTILE)
@@ -842,11 +865,11 @@ public class BuildingClientEvents {
                         builderArray[i] = builderIds.get(i);
                     }
                     BuildingServerboundPacket.placeBuilding(buildingToPlace,
-                        isBuildingToPlaceABridge() && bridgePlaceState == 2 ? pos.offset(-5, 0, -5) : pos,
-                        buildingRotation,
-                        hudSelectedEntity instanceof Unit unit ? unit.getOwnerName() : ownerName,
-                        builderArray,
-                        isBridgeDiagonal()
+                            isBuildingToPlaceABridge() && bridgePlaceState == 2 ? pos.offset(-5, 0, -5) : pos,
+                            buildingRotation,
+                            hudSelectedEntity instanceof Unit unit ? unit.getOwnerName() : ownerName,
+                            builderArray,
+                            isBridgeDiagonal()
                     );
                     setBuildingToPlace(null);
                     isBuilt = true;
@@ -868,18 +891,18 @@ public class BuildingClientEvents {
 
                 // select all nearby buildings of the same type when the same building is double-clicked
                 if (selectedBuildings.size() == 1 && MC.level != null && !Keybindings.shiftMod.isDown() &&
-                    ((System.currentTimeMillis() - lastLeftClickTime) < DOUBLE_CLICK_TIME_MS || Keybindings.ctrlMod.isDown()) &&
-                    preSelBuilding != null && selectedBuildings.contains(preSelBuilding)) {
+                        ((System.currentTimeMillis() - lastLeftClickTime) < DOUBLE_CLICK_TIME_MS || Keybindings.ctrlMod.isDown()) &&
+                        preSelBuilding != null && selectedBuildings.contains(preSelBuilding)) {
 
                     lastLeftClickTime = 0;
                     BuildingPlacement selBuilding = selectedBuildings.get(0);
                     BlockPos centre = selBuilding.centrePos;
                     ArrayList<BuildingPlacement> nearbyBuildings = getBuildingsWithinRange(new Vec3(centre.getX(),
-                            centre.getY(),
-                            centre.getZ()
-                        ),
-                        OrthoviewClientEvents.getZoom() * 2,
-                        selBuilding.getBuilding()
+                                    centre.getY(),
+                                    centre.getZ()
+                            ),
+                            OrthoviewClientEvents.getZoom() * 2,
+                            selBuilding.getBuilding()
                     );
                     clearSelectedBuildings();
                     for (BuildingPlacement building : nearbyBuildings)
@@ -898,10 +921,10 @@ public class BuildingClientEvents {
                     }
 
                     if (Keybindings.shiftMod.isDown() && !deselected
-                        && getPlayerToBuildingRelationship(preSelBuilding) == Relationship.OWNED) {
+                            && getPlayerToBuildingRelationship(preSelBuilding) == Relationship.OWNED) {
                         addSelectedBuilding(preSelBuilding);
                     } else if (!deselected && UnitClientEvents.getPreselectedUnits().size()
-                        == 0) { // select a single building - this should be the only code path that allows you to
+                            == 0) { // select a single building - this should be the only code path that allows you to
                         // select a non-owned building
                         clearSelectedBuildings();
                         addSelectedBuilding(preSelBuilding);
@@ -923,12 +946,12 @@ public class BuildingClientEvents {
             if (!Keybindings.altMod.isDown()) {
                 for (BuildingPlacement selBuilding : selectedBuildings) {
                     if (selBuilding instanceof ProductionPlacement selProdBuilding
-                        && getPlayerToBuildingRelationship(selBuilding) == Relationship.OWNED) {
+                            && getPlayerToBuildingRelationship(selBuilding) == Relationship.OWNED) {
                         if (!UnitClientEvents.getPreselectedUnits().isEmpty()) {
                             LivingEntity rallyPointEntity = UnitClientEvents.getPreselectedUnits().get(0);
                             selProdBuilding.setRallyPointEntity(rallyPointEntity);
                             BuildingServerboundPacket.setRallyPointEntity(selBuilding.originPos,
-                                rallyPointEntity.getId()
+                                    rallyPointEntity.getId()
                             );
                         } else {
                             BlockPos rallyPoint = CursorClientEvents.getPreselectedBlockPos();
@@ -973,7 +996,7 @@ public class BuildingClientEvents {
             if (building != null && building.getBuilding().capturable && !isSandboxPlayer) {
                 HudClientEvents.showTemporaryMessage(I18n.get("server.reignofnether.cannot_delete_capturable"));
             } else if (building != null &&
-                ((building.isBuilt && getPlayerToBuildingRelationship(building) == Relationship.OWNED) || isSandboxPlayer)) {
+                    ((building.isBuilt && getPlayerToBuildingRelationship(building) == Relationship.OWNED) || isSandboxPlayer)) {
                 HudClientEvents.hudSelectedPlacement = null;
                 BuildingServerboundPacket.cancelBuilding(building.minCorner, MC.player.getName().getString());
             }
@@ -1063,32 +1086,32 @@ public class BuildingClientEvents {
 
     // place a building clientside that has already been registered on serverside
     public static void placeBuilding(
-        Building building,
-        BlockPos pos,
-        Rotation rotation,
-        String ownerName,
-        int numBlocksToPlace,
-        boolean isDiagonalBridge,
-        int upgradeLevel,
-        boolean isBuilt,
-        PortalPlacement.PortalType portalType,
-        BlockPos portalDestination,
-        boolean forPlayerLoggingIn
+            Building building,
+            BlockPos pos,
+            Rotation rotation,
+            String ownerName,
+            int numBlocksToPlace,
+            boolean isDiagonalBridge,
+            int upgradeLevel,
+            boolean isBuilt,
+            PortalPlacement.PortalType portalType,
+            BlockPos portalDestination,
+            boolean forPlayerLoggingIn
     ) {
         BuildingPlacement newBuilding = BuildingUtils.getNewBuildingPlacement(building,
-            MC.level,
-            pos,
-            rotation,
-            ownerName,
-            isDiagonalBridge
+                MC.level,
+                pos,
+                rotation,
+                ownerName,
+                isDiagonalBridge
         );
         // allow overrides for custom buildings
         //if (building instanceof CustomBuilding) {
         //    buildings.removeIf(b -> b.originPos.equals(pos));
         //} else {
-            for (BuildingPlacement placement : buildings)
-                if (newBuilding.originPos.equals(placement.originPos))
-                    return; // skip, building already exists clientside
+        for (BuildingPlacement placement : buildings)
+            if (newBuilding.originPos.equals(placement.originPos))
+                return; // skip, building already exists clientside
         //}
         // add a bunch of dummy blocks so clients know not to remove buildings before the first blocks get placed
         while (numBlocksToPlace > 0) {
@@ -1139,7 +1162,7 @@ public class BuildingClientEvents {
         // sync the goal so we can display the correct animations
         Entity entity = hudSelectedEntity;
         if (entity instanceof WorkerUnit workerUnit && entity instanceof Unit unit &&
-            unit.getOwnerName().equals(ownerName)) {
+                unit.getOwnerName().equals(ownerName)) {
             ((Unit) entity).resetBehaviours();
             workerUnit.getBuildRepairGoal().setBuildingTarget(newBuilding);
         }

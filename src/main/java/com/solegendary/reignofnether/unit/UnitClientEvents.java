@@ -217,6 +217,9 @@ public class UnitClientEvents {
         markSelectedUnitsChanged();
     }
 
+    // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
+    private static long lastPopDebugLogMs = 0;
+
     public static int getCurrentPopulation(String playerName) {
         int currentPopulation = 0;
         if (MC.level != null) {
@@ -234,6 +237,26 @@ public class UnitClientEvents {
                     } else if (building.getBuilding() instanceof IronGolemBuilding) {
                         currentPopulation += ResourceCosts.IRON_GOLEM.population;
                     }
+        }
+        // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
+        // throttled to once per second to avoid flooding the console (this method runs every render frame)
+        long nowMs = System.currentTimeMillis();
+        if (nowMs - lastPopDebugLogMs > 1000) {
+            lastPopDebugLogMs = nowMs;
+            StringBuilder sb = new StringBuilder();
+            sb.append("[FORMIX-DEBUG-CLIENT] playerName='").append(playerName)
+                    .append("' result=").append(currentPopulation)
+                    .append(" units=[");
+            for (LivingEntity entity : allUnits) {
+                if (entity instanceof Unit unit) {
+                    sb.append(entity.getClass().getSimpleName())
+                            .append("(owner='").append(unit.getOwnerName())
+                            .append("',pop=").append(unit.getCost().population)
+                            .append(") ");
+                }
+            }
+            sb.append("]");
+            System.out.println(sb);
         }
         return currentPopulation;
     }
@@ -271,10 +294,10 @@ public class UnitClientEvents {
                                              BlockPos preselectedBlockPos, BlockPos selectedBuildingPos) {
         if (MC.player != null) {
             UnitActionItem actionItem = new UnitActionItem(
-                MC.player.getName().getString(),
-                action, unitId, unitIds,
-                preselectedBlockPos,
-                selectedBuildingPos
+                    MC.player.getName().getString(),
+                    action, unitId, unitIds,
+                    preselectedBlockPos,
+                    selectedBuildingPos
             );
             // prevent spam clicking the same action repeatedly
             if (!actionItem.equals(lastClientUAIActioned)) {
@@ -283,11 +306,11 @@ public class UnitClientEvents {
             }
 
             PacketHandler.INSTANCE.sendToServer(new UnitActionServerboundPacket(
-                MC.player.getName().getString(),
-                action, unitId, unitIds,
-                preselectedBlockPos,
-                selectedBuildingPos,
-                Keybindings.shiftMod.isDown()
+                    MC.player.getName().getString(),
+                    action, unitId, unitIds,
+                    preselectedBlockPos,
+                    selectedBuildingPos,
+                    Keybindings.shiftMod.isDown()
             ));
         }
     }
@@ -367,23 +390,23 @@ public class UnitClientEvents {
             String playerName = MC.player.getName().getString();
 
             UnitActionItem actionItem = new UnitActionItem(
-                playerName,
-                action,
-                targetEntityId,
-                ArrayUtil.livingEntityListToIdArray(selUnits),
-                bp,
-                HudClientEvents.hudSelectedPlacement != null ? HudClientEvents.hudSelectedPlacement.originPos : new BlockPos(0,0,0)
+                    playerName,
+                    action,
+                    targetEntityId,
+                    ArrayUtil.livingEntityListToIdArray(selUnits),
+                    bp,
+                    HudClientEvents.hudSelectedPlacement != null ? HudClientEvents.hudSelectedPlacement.originPos : new BlockPos(0,0,0)
             );
             actionItem.action(MC.level);
 
             PacketHandler.INSTANCE.sendToServer(new UnitActionServerboundPacket(
-                playerName,
-                action,
-                targetEntityId,
-                ArrayUtil.livingEntityListToIdArray(selUnits),
-                bp,
-                HudClientEvents.hudSelectedPlacement != null ? HudClientEvents.hudSelectedPlacement.originPos : new BlockPos(0,0,0),
-                Keybindings.shiftMod.isDown()
+                    playerName,
+                    action,
+                    targetEntityId,
+                    ArrayUtil.livingEntityListToIdArray(selUnits),
+                    bp,
+                    HudClientEvents.hudSelectedPlacement != null ? HudClientEvents.hudSelectedPlacement.originPos : new BlockPos(0,0,0),
+                    Keybindings.shiftMod.isDown()
             ));
         }
     }
@@ -527,7 +550,7 @@ public class UnitClientEvents {
 
         // calculate vecs used to hide leaf blocks around units
         if (MC.player != null && OrthoviewClientEvents.hideLeavesMethod == OrthoviewClientEvents.LeafHideMethod.AROUND_UNITS_AND_CURSOR &&
-            OrthoviewClientEvents.isEnabled()) {
+                OrthoviewClientEvents.isEnabled()) {
 
             synchronized (windowPositions) {
                 windowPositions.clear();
@@ -644,7 +667,7 @@ public class UnitClientEvents {
                 // A + left click -> force attack building (even if friendly)
                 else if (BuildingClientEvents.getPreselectedBuilding() != null)
                     sendUnitCommand(UnitAction.ATTACK_BUILDING);
-                // A + left click -> attack move ground
+                    // A + left click -> attack move ground
                 else
                     sendUnitCommand(UnitAction.ATTACK_MOVE);
             }
@@ -653,7 +676,7 @@ public class UnitClientEvents {
             // only works for owned units
             else if (selectedUnits.size() == 1 && MC.level != null && !Keybindings.shiftMod.isDown() &&
                     ((System.currentTimeMillis() - lastLeftClickTime) < DOUBLE_CLICK_TIME_MS || Keybindings.ctrlMod.isDown()) &&
-                     !preselectedUnits.isEmpty() && selectedUnits.contains(preselectedUnits.get(0))) {
+                    !preselectedUnits.isEmpty() && selectedUnits.contains(preselectedUnits.get(0))) {
 
                 lastLeftClickTime = 0;
                 LivingEntity selectedUnit = selectedUnits.get(0);
@@ -669,10 +692,10 @@ public class UnitClientEvents {
 
                     for (LivingEntity entity : nearbyEntities) {
                         boolean bothVillagers = entity instanceof VillagerUnit &&
-                                                selectedUnit instanceof VillagerUnit;
+                                selectedUnit instanceof VillagerUnit;
                         boolean sameProfession = entity instanceof VillagerUnit vUnit1 &&
-                                                selectedUnit instanceof VillagerUnit vUnit2 &&
-                                                vUnit1.getUnitProfession() == vUnit2.getUnitProfession();
+                                selectedUnit instanceof VillagerUnit vUnit2 &&
+                                vUnit1.getUnitProfession() == vUnit2.getUnitProfession();
                         boolean garrisoned1 = selectedUnit instanceof Unit unit1 && GarrisonableBuildingAddon.getGarrison(unit1) != null;
                         boolean garrisoned2 = entity instanceof Unit unit2 && GarrisonableBuildingAddon.getGarrison(unit2) != null;
                         boolean garrionStatusMatches = (garrisoned1 && garrisoned2) || (!garrisoned1 && !garrisoned2);
@@ -690,7 +713,7 @@ public class UnitClientEvents {
             // move on left click
             else if (CursorClientEvents.getLeftClickAction() == UnitAction.MOVE)
                 resolveMoveAction();
-            // resolve any other abilities not explicitly covered here
+                // resolve any other abilities not explicitly covered here
             else if (CursorClientEvents.getLeftClickAction() != null && MC.player != null) {
                 sendUnitCommand(CursorClientEvents.getLeftClickAction());
             }
@@ -712,10 +735,10 @@ public class UnitClientEvents {
                     deselected = selectedUnits.removeIf(id -> id.equals(preselectedUnits.get(0)));
 
                 if (Keybindings.shiftMod.isDown() && !deselected &&
-                    ((preselectedUnits.get(0) instanceof Unit && getPlayerToEntityRelationship(preselectedUnits.get(0)) == Relationship.OWNED) ||
-                    AlliancesClient.canControlAlly(preselectedUnits.get(0)) ||
-                    NonUnitClientEvents.canControlAllMobs())) {
-                        addSelectedUnit(preselectedUnits.get(0));
+                        ((preselectedUnits.get(0) instanceof Unit && getPlayerToEntityRelationship(preselectedUnits.get(0)) == Relationship.OWNED) ||
+                                AlliancesClient.canControlAlly(preselectedUnits.get(0)) ||
+                                NonUnitClientEvents.canControlAllMobs())) {
+                    addSelectedUnit(preselectedUnits.get(0));
                 }
                 else if (!deselected) { // select a single unit - this should be the only code path that allows you to select a non-owned unit
                     clearSelectedUnits();
@@ -726,8 +749,8 @@ public class UnitClientEvents {
             // and disallow selecting > 1 non-owned unit or the client player
             if (selectedUnits.size() > 1) {
                 selectedUnits.removeIf(e ->
-                    (getPlayerToEntityRelationship(e) != Relationship.OWNED && !NonUnitClientEvents.canControlAllMobs() && !AlliancesClient.canControlAlly(e)) ||
-                            e.getId() == MC.player.getId()
+                        (getPlayerToEntityRelationship(e) != Relationship.OWNED && !NonUnitClientEvents.canControlAllMobs() && !AlliancesClient.canControlAlly(e)) ||
+                                e.getId() == MC.player.getId()
                 );
             }
             BuildingClientEvents.isBuilt = false;
@@ -740,8 +763,8 @@ public class UnitClientEvents {
                 BuildingClientEvents.setBuildingToPlace(null);
                 return;
             }
-			if (MinimapClientEvents.isPointInsideMinimap(evt.getMouseX(), evt.getMouseY()))
-				return;
+            if (MinimapClientEvents.isPointInsideMinimap(evt.getMouseX(), evt.getMouseY()))
+                return;
 
             rightClickActionTaken = false;
             if (!selectedUnits.isEmpty()) {
@@ -766,18 +789,18 @@ public class UnitClientEvents {
                 }
                 // right click -> attack unfriendly unit
                 else if (preselectedUnits.size() == 1 &&
-                    !targetingSelf() &&
-                    (hudSelectedEntity instanceof Unit || NonUnitClientEvents.canAttack(hudSelectedEntity)) &&
-                    ((GameruleClient.neutralAggro && getPlayerToEntityRelationship(preselectedUnits.get(0)) == Relationship.NEUTRAL) ||
-                    getPlayerToEntityRelationship(preselectedUnits.get(0)) == Relationship.HOSTILE ||
-                     ResourceSources.isHuntableAnimal(preselectedUnits.get(0)))) {
+                        !targetingSelf() &&
+                        (hudSelectedEntity instanceof Unit || NonUnitClientEvents.canAttack(hudSelectedEntity)) &&
+                        ((GameruleClient.neutralAggro && getPlayerToEntityRelationship(preselectedUnits.get(0)) == Relationship.NEUTRAL) ||
+                                getPlayerToEntityRelationship(preselectedUnits.get(0)) == Relationship.HOSTILE ||
+                                ResourceSources.isHuntableAnimal(preselectedUnits.get(0)))) {
 
-                     if (hudSelectedEntity instanceof WitchUnit witchUnit) {
-                         sendUnitCommand(UnitAction.THROW_LINGERING_HARMING_POTION);
-                     } else {
-                         sendUnitCommand(UnitAction.ATTACK);
-                     }
-                     rightClickActionTaken = true;
+                    if (hudSelectedEntity instanceof WitchUnit witchUnit) {
+                        sendUnitCommand(UnitAction.THROW_LINGERING_HARMING_POTION);
+                    } else {
+                        sendUnitCommand(UnitAction.ATTACK);
+                    }
+                    rightClickActionTaken = true;
                 }
                 // right click -> attack unfriendly building
                 else if (hudSelectedEntity instanceof AttackerUnit &&
@@ -785,7 +808,7 @@ public class UnitClientEvents {
                         !preSelBuilding.getBuilding().invulnerable &&
                         !(preSelBuilding.getBuilding() instanceof AbstractBridge) &&
                         ((GameruleClient.neutralAggro && getPlayerToBuildingRelationship(preSelBuilding) == Relationship.NEUTRAL) ||
-                        getPlayerToBuildingRelationship(preSelBuilding) == Relationship.HOSTILE)) {
+                                getPlayerToBuildingRelationship(preSelBuilding) == Relationship.HOSTILE)) {
                     sendUnitCommand(UnitAction.ATTACK_BUILDING);
                     rightClickActionTaken = true;
                 }
@@ -865,8 +888,8 @@ public class UnitClientEvents {
             return;
 
         if (evt.getButton() == GLFW.GLFW_MOUSE_BUTTON_2) {
-		if (MinimapClientEvents.minimapRightClickDown)
-			return;
+            if (MinimapClientEvents.minimapRightClickDown)
+                return;
             if (Keybindings.altMod.isDown() && FormationDragMove.isDragging()) {
                 FormationDragMove.cancelDrag();
             }
@@ -906,21 +929,21 @@ public class UnitClientEvents {
 
                 if (!queueOrders) {
                     new UnitActionItem(
-                        playerName,
-                        UnitAction.MOVE, -1, singleUnitId,
-                        targetBp,
-                        new BlockPos(0, 0, 0)
+                            playerName,
+                            UnitAction.MOVE, -1, singleUnitId,
+                            targetBp,
+                            new BlockPos(0, 0, 0)
                     ).action(MC.level);
                 } else {
                     MiscUtil.addUnitCheckpoint(unit, targetBp, true);
                 }
 
                 PacketHandler.INSTANCE.sendToServer(new UnitActionServerboundPacket(
-                    playerName,
-                    UnitAction.MOVE, -1, singleUnitId,
-                    targetBp,
-                    new BlockPos(0, 0, 0),
-                    queueOrders
+                        playerName,
+                        UnitAction.MOVE, -1, singleUnitId,
+                        targetBp,
+                        new BlockPos(0, 0, 0),
+                        queueOrders
                 ));
             }
         }
@@ -1092,8 +1115,8 @@ public class UnitClientEvents {
                     if (entity.isVehicle()) {
                         BlockPos blockTarget = null;
                         if (entity.getFirstPassenger() instanceof RangedAttackerUnit rau &&
-                            rau.getRangedAttackGroundGoal() != null &&
-                            rau.getRangedAttackGroundGoal().getGroundTarget() != null) {
+                                rau.getRangedAttackGroundGoal() != null &&
+                                rau.getRangedAttackGroundGoal().getGroundTarget() != null) {
                             blockTarget = rau.getRangedAttackGroundGoal().getGroundTarget();
                         }
                         float a = MiscUtil.getOscillatingFloat(0.25f, 0.75f);
@@ -1246,7 +1269,7 @@ public class UnitClientEvents {
             Entity newEntity = MC.level.getEntity(newUnitIds[i]);
 
             if (oldEntity instanceof Unit oldUnit &&
-                newEntity instanceof Unit newUnit) {
+                    newEntity instanceof Unit newUnit) {
 
                 // retain selections
                 int j = i;
@@ -1258,39 +1281,39 @@ public class UnitClientEvents {
 
                 if (oldUnit.getTargetGoal().getTarget() != null)
                     sendUnitCommandManual(
-                        UnitAction.ATTACK,
-                        oldUnit.getTargetGoal().getTarget().getId(),
-                        new int[] { newEntity.getId() }
+                            UnitAction.ATTACK,
+                            oldUnit.getTargetGoal().getTarget().getId(),
+                            new int[] { newEntity.getId() }
                     );
                 if (oldUnit.getFollowTarget() != null)
                     sendUnitCommandManual(
-                        UnitAction.FOLLOW,
-                        oldUnit.getFollowTarget().getId(),
-                        new int[] { newEntity.getId() }
+                            UnitAction.FOLLOW,
+                            oldUnit.getFollowTarget().getId(),
+                            new int[] { newEntity.getId() }
                     );
                 if (oldUnit.getMoveGoal().getMoveTarget() != null)
                     sendUnitCommandManual(
-                        UnitAction.MOVE, -1,
-                        new int[] { newEntity.getId() },
-                        oldUnit.getMoveGoal().getMoveTarget()
+                            UnitAction.MOVE, -1,
+                            new int[] { newEntity.getId() },
+                            oldUnit.getMoveGoal().getMoveTarget()
                     );
                 if (oldUnit.getReturnResourcesGoal() != null &&
-                    oldUnit.getReturnResourcesGoal().getBuildingTarget() != null)
+                        oldUnit.getReturnResourcesGoal().getBuildingTarget() != null)
                     sendUnitCommandManual(
-                        UnitAction.RETURN_RESOURCES, -1,
-                        new int[] { newEntity.getId() },
-                        oldUnit.getReturnResourcesGoal().getBuildingTarget().originPos,
-                        new BlockPos(0,0,0)
+                            UnitAction.RETURN_RESOURCES, -1,
+                            new int[] { newEntity.getId() },
+                            oldUnit.getReturnResourcesGoal().getBuildingTarget().originPos,
+                            new BlockPos(0,0,0)
                     );
             }
             if (oldEntity instanceof AttackerUnit oldAUnit &&
-                newEntity instanceof AttackerUnit newAUnit) {
+                    newEntity instanceof AttackerUnit newAUnit) {
 
                 if (oldAUnit.getAttackMoveTarget() != null)
                     sendUnitCommandManual(
-                        UnitAction.ATTACK_MOVE, -1,
-                        new int[] { newEntity.getId() },
-                        oldAUnit.getAttackMoveTarget()
+                            UnitAction.ATTACK_MOVE, -1,
+                            new int[] { newEntity.getId() },
+                            oldAUnit.getAttackMoveTarget()
                     );
             }
         }
@@ -1368,10 +1391,10 @@ public class UnitClientEvents {
         for (LivingEntity entity : getAllUnits()) {
             if (entity.getId() == entityId) {
                 if (entity instanceof IronGolemUnit ||
-                    entity instanceof HoglinUnit ||
-                    entity instanceof ZoglinUnit ||
-                    entity instanceof RavagerUnit ||
-                    entity instanceof WardenUnit) {
+                        entity instanceof HoglinUnit ||
+                        entity instanceof ZoglinUnit ||
+                        entity instanceof RavagerUnit ||
+                        entity instanceof WardenUnit) {
                     entity.handleEntityEvent((byte) 4);
                 }
             }
@@ -1386,8 +1409,8 @@ public class UnitClientEvents {
         for (int id : idleWorkerIds) {
             for (LivingEntity entity : getAllUnits()) {
                 if (entity.getId() == id &&
-                    entity instanceof WorkerUnit unit &&
-                    getPlayerToEntityRelationship(entity) == Relationship.OWNED)
+                        entity instanceof WorkerUnit unit &&
+                        getPlayerToEntityRelationship(entity) == Relationship.OWNED)
                     UnitClientEvents.idleWorkerIds.add(id);
             }
         }
@@ -1411,13 +1434,13 @@ public class UnitClientEvents {
         if (!((Unit) passenger).getOwnerName().equals(((Unit) vehicle).getOwnerName()))
             return null;
         if ((hudSelectedEntity instanceof PillagerUnit || hudSelectedEntity instanceof EvokerUnit) && vehicle instanceof RavagerUnit &&
-            ResearchClient.hasResearch(ProductionItems.RESEARCH_RAVAGER_CAVALRY))
+                ResearchClient.hasResearch(ProductionItems.RESEARCH_RAVAGER_CAVALRY))
             return UnitAction.MOUNT_RAVAGER;
         if (hudSelectedEntity instanceof HeadhunterUnit && vehicle instanceof HoglinUnit &&
-            ResearchClient.hasResearch(ProductionItems.RESEARCH_HOGLIN_CAVALRY))
+                ResearchClient.hasResearch(ProductionItems.RESEARCH_HOGLIN_CAVALRY))
             return UnitAction.MOUNT_HOGLIN;
         if (hudSelectedEntity instanceof Unit && hudSelectedEntity instanceof AbstractSkeleton && vehicle instanceof SpiderUnit &&
-            ResearchClient.hasResearch(ProductionItems.RESEARCH_SPIDER_JOCKEYS))
+                ResearchClient.hasResearch(ProductionItems.RESEARCH_SPIDER_JOCKEYS))
             return UnitAction.MOUNT_SPIDER;
         return null;
     }

@@ -561,13 +561,6 @@ public class BuildingServerEvents {
 
         int totalPopulationSupply = 0;
         for (BuildingPlacement building : buildings) {
-            // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
-            if (building.ownerName.equals(ownerName)) {
-                System.out.println("[FORMIX-DEBUG] building=" + building.getBuilding().getClass().getSimpleName()
-                        + " isBuilt=" + building.isBuilt
-                        + " costPopulation=" + building.getBuilding().cost.population
-                        + " ownerName=" + building.ownerName);
-            }
             if (building.ownerName.equals(ownerName) && building.isBuilt) {
                 totalPopulationSupply += building.getBuilding().cost.population;
             }
