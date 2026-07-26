@@ -316,15 +316,18 @@ public class PlayerServerEvents {
             ResearchServerEvents.syncCheats(playerName);
         }
 
-        boolean inOrthoviewList = false;
-        for (ServerPlayer orthoviewPlayer : orthoviewPlayers) {
-            if (orthoviewPlayer.getId() == evt.getEntity().getId())  {
-                inOrthoviewList = true;
-                break;
-            }
-        }
-        if (!inOrthoviewList)
-            orthoviewPlayers.add((ServerPlayer) evt.getEntity());
+        // FIX (26.07.2026): this used to unconditionally add the joining player to
+        // orthoviewPlayers if their (new, freshly-assigned) entity id wasn't already present -
+        // which is true for every single player join, since Entity ids are reassigned on each
+        // world join. In effect this put EVERY joining player into orthoviewPlayers regardless of
+        // whether they had ever used orthoview, which made PlayerMixin.tick() force
+        // flying/noPhysics on immediately on spawn, before the player ever pressed the orthoview
+        // key - "I can fly and clip through blocks the moment I join Survival" (confirmed by user
+        // 26.07.2026, see PROJECT_NOTES/FORMIX_FACTION_LOG.md). There is no reliable way to tell
+        // "this is the same player re-joining while they were in orthoview" apart from a fresh
+        // entity id, so this block is removed rather than fixed - orthoview state is expected to
+        // be client-driven (OrthoviewClientEvents.enabled + toggleEnable()) and this list should
+        // only ever be populated by an explicit enableOrthoview() call, not by login.
 
         if (!TutorialServerEvents.isEnabled()) {
             if (!isRTSPlayer(serverPlayer.getId())) {
@@ -383,6 +386,10 @@ public class PlayerServerEvents {
         int id = evt.getEntity().getId();
         ReignOfNether.LOGGER.info("Player logged out: " + evt.getEntity().getName().getString() + ", id: " + id);
         players.removeIf(player -> player.getId() == id);
+        // Also clean up orthoviewPlayers so stale ServerPlayer objects don't accumulate here
+        // across world sessions - see the FIX note in onPlayerJoin() for the related bug this
+        // was part of.
+        orthoviewPlayers.removeIf(player -> player.getId() == id);
     }
 
     public static void startRTS(int playerId, Vec3 pos, Faction faction) {

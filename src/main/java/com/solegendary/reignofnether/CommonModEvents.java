@@ -93,6 +93,11 @@ public class CommonModEvents {
             for(Item item : BlockRegistrar.blockItems.get(CreativeModeTabs.FUNCTIONAL_BLOCKS)){
                 event.accept(item);
             }
+            // GeoItem-предметы терминала - НЕ входят в BlockRegistrar.blockItems
+            // (регистрируются вручную в ItemRegistrar.java, не через авто-BlockItem,
+            // см. комментарий у FORMIX_CONTROL_STATION_BLOCK в BlockRegistrar.java)
+            event.accept(ItemRegistrar.FORMIX_CONTROL_STATION_BLOCK_ITEM.get());
+            event.accept(ItemRegistrar.FORMIX_CONTROL_STATION_INACTIVE_BLOCK_ITEM.get());
         }
         if(BuiltInRegistries.CREATIVE_MODE_TAB.getKey(event.getTab())==CreativeModeTabs.SPAWN_EGGS.location()){
             event.accept(ItemRegistrar.ZOMBIE_UNIT_SPAWN_EGG);

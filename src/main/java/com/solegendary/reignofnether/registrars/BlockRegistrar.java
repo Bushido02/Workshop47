@@ -197,19 +197,28 @@ public class BlockRegistrar {
     // VoxelShape внутри самих блоков), собственная коллизия задаётся через
     // getCollisionShape(), поэтому .noCollission() здесь НЕ ставим (он бы
     // проигнорировал кастомный shape).
+    //
+    // ВАЖНО: используется 2-аргументная registerBlock(name, block) БЕЗ tab -
+    // она НЕ создаёт авто-BlockItem (в отличие от 3-аргументной версии,
+    // используемой для большинства блоков в этом файле). Причина: обычный
+    // авто-BlockItem не умеет показывать полноценную 3D GeckoLib-модель в
+    // руке/инвентаре (только плоскую 2D-иконку через block/cross). Вместо
+    // этого Item регистрируется вручную в ItemRegistrar.java как
+    // FormixControlStationBlockItem/InactiveBlockItem (implements GeoItem),
+    // и добавляется в CreativeModeTabs.FUNCTIONAL_BLOCKS явным вызовом в
+    // CommonModEvents.creativeTabSetup() (см. тот файл) - тем же паттерном,
+    // что используется для SPAWN_EGGS ниже в том же методе.
     public static final RegistryObject<Block> FORMIX_CONTROL_STATION_BLOCK = registerBlock("formix_control_station_block", () ->
                     new FormixControlStationBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE)
                             .strength(-1.0F, 3600000.0F)
                             .noLootTable()
-                            .noOcclusion()),
-            CreativeModeTabs.FUNCTIONAL_BLOCKS);
+                            .noOcclusion()));
 
     public static final RegistryObject<Block> FORMIX_CONTROL_STATION_INACTIVE_BLOCK = registerBlock("formix_control_station_inactive_block", () ->
                     new FormixControlStationInactiveBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE)
                             .strength(-1.0F, 3600000.0F)
                             .noLootTable()
-                            .noOcclusion()),
-            CreativeModeTabs.FUNCTIONAL_BLOCKS);
+                            .noOcclusion()));
 
     public static final RegistryObject<Block> GARRISON_ENTRY_BLOCK = registerBlock("garrison_entry_block", () ->
                     new GarrisonEntryBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY)

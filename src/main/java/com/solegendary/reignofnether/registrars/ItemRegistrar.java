@@ -1,6 +1,8 @@
 package com.solegendary.reignofnether.registrars;
 
 import com.solegendary.reignofnether.ReignOfNether;
+import com.solegendary.reignofnether.blocks.FormixControlStationBlockItem;
+import com.solegendary.reignofnether.blocks.FormixControlStationInactiveBlockItem;
 import com.solegendary.reignofnether.items.HeroExperienceBottleItem;
 import com.solegendary.reignofnether.items.ThrowableTnt;
 import net.minecraft.world.item.Item;
@@ -191,6 +193,16 @@ public class ItemRegistrar {
 
     public static final RegistryObject<Item> THROWN_HERO_EXPERIENCE_BOTTLE =
             ITEMS.register("thrown_hero_experience_bottle", () -> new HeroExperienceBottleItem(new Item.Properties()));
+
+    // GeoItem-предметы терминала - НЕ авто-BlockItem (см. комментарий в
+    // BlockRegistrar.java у FORMIX_CONTROL_STATION_BLOCK), полноценная 3D
+    // GeckoLib-модель в руке/инвентаре. Добавляются в CreativeModeTabs.
+    // FUNCTIONAL_BLOCKS вручную в CommonModEvents.creativeTabSetup().
+    public static final RegistryObject<Item> FORMIX_CONTROL_STATION_BLOCK_ITEM =
+            ITEMS.register("formix_control_station_block", () -> new FormixControlStationBlockItem(new Item.Properties()));
+
+    public static final RegistryObject<Item> FORMIX_CONTROL_STATION_INACTIVE_BLOCK_ITEM =
+            ITEMS.register("formix_control_station_inactive_block", () -> new FormixControlStationInactiveBlockItem(new Item.Properties()));
 
     public static void init(FMLJavaModLoadingContext context) {
         ITEMS.register(context.getModEventBus());
