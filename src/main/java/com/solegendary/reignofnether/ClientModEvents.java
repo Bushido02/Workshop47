@@ -1,5 +1,7 @@
 package com.solegendary.reignofnether;
 
+import com.solegendary.reignofnether.blocks.FormixControlStationBlockRenderer;
+import com.solegendary.reignofnether.blocks.FormixControlStationInactiveBlockRenderer;
 import com.solegendary.reignofnether.blocks.GarrisonBlockRenderer;
 import com.solegendary.reignofnether.blocks.SkullTypes;
 import com.solegendary.reignofnether.building.BuildingPlacement;
@@ -202,6 +204,8 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void registerBlockEntityRenderers(EntityRenderersEvent.RegisterRenderers evt) {
         evt.registerBlockEntityRenderer(BlockEntityRegistrar.GARRISON_BLOCK_ENTITY.get(), GarrisonBlockRenderer::new);
+        evt.registerBlockEntityRenderer(BlockEntityRegistrar.FORMIX_CONTROL_STATION_BLOCK_ENTITY.get(), FormixControlStationBlockRenderer::new);
+        evt.registerBlockEntityRenderer(BlockEntityRegistrar.FORMIX_CONTROL_STATION_INACTIVE_BLOCK_ENTITY.get(), FormixControlStationInactiveBlockRenderer::new);
     }
 
     @SubscribeEvent

@@ -81,6 +81,11 @@ public class ReignOfNether {
     public static SimpleChannel handshakeChannel;
     
     public ReignOfNether(FMLJavaModLoadingContext mlctx) {
+        // GeckoLib must be initialised before any GeoModel/GeoBlockEntity is
+        // touched (added for FormixControlStationBlock's GeckoLib-based model,
+        // see FORMIX_FACTION_LOG.md) - must run before block/blockentity registration.
+        software.bernie.geckolib.GeckoLib.initialize();
+
         // Registering all components
         EnchantmentRegistrar.init(mlctx);
         

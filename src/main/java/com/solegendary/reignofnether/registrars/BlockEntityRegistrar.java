@@ -1,6 +1,8 @@
 package com.solegendary.reignofnether.registrars;
 
 import com.solegendary.reignofnether.ReignOfNether;
+import com.solegendary.reignofnether.blocks.FormixControlStationBlockEntity;
+import com.solegendary.reignofnether.blocks.FormixControlStationInactiveBlockEntity;
 import com.solegendary.reignofnether.blocks.GarrisonBlockEntity;
 import com.solegendary.reignofnether.blocks.RTSStructureBlockEntity;
 import com.solegendary.reignofnether.blocks.WraithSnowBlockEntity;
@@ -37,6 +39,18 @@ public class BlockEntityRegistrar {
             register("wraith_snow_block_entity",
                     () -> BlockEntityType.Builder.of(WraithSnowBlockEntity::new,
                             BlockRegistrar.WRAITH_SNOW_LAYER.get()).build(null)
+            );
+
+    public static final RegistryObject<BlockEntityType<FormixControlStationBlockEntity>> FORMIX_CONTROL_STATION_BLOCK_ENTITY =
+            register("formix_control_station_block_entity",
+                    () -> BlockEntityType.Builder.of(FormixControlStationBlockEntity::new,
+                            BlockRegistrar.FORMIX_CONTROL_STATION_BLOCK.get()).build(null)
+            );
+
+    public static final RegistryObject<BlockEntityType<FormixControlStationInactiveBlockEntity>> FORMIX_CONTROL_STATION_INACTIVE_BLOCK_ENTITY =
+            register("formix_control_station_inactive_block_entity",
+                    () -> BlockEntityType.Builder.of(FormixControlStationInactiveBlockEntity::new,
+                            BlockRegistrar.FORMIX_CONTROL_STATION_INACTIVE_BLOCK.get()).build(null)
             );
 
     private static <T extends BlockEntity> RegistryObject<BlockEntityType<T>> register(String name, Supplier<BlockEntityType<T>> blockEntity) {

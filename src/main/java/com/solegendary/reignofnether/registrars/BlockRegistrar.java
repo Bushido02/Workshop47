@@ -189,6 +189,28 @@ public class BlockRegistrar {
             new RTSStructureBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).requiresCorrectToolForDrops()
                     .strength(-1.0F, 3600000.0F).noLootTable()), CreativeModeTabs.FUNCTIONAL_BLOCKS);
 
+    // Терминал управления/прокачки Formix - два независимых блока (активный/
+    // неактивный, каждый со своей GeckoLib-моделью и предметом в креативе).
+    // Решение пользователя 26.07.2026 - не одно состояние active/inactive в
+    // одном блоке, а два разных блока/предмета. noOcclusion по образцу
+    // GARRISON_ENTRY_BLOCK ниже - модель физически больше 1 блока (см.
+    // VoxelShape внутри самих блоков), собственная коллизия задаётся через
+    // getCollisionShape(), поэтому .noCollission() здесь НЕ ставим (он бы
+    // проигнорировал кастомный shape).
+    public static final RegistryObject<Block> FORMIX_CONTROL_STATION_BLOCK = registerBlock("formix_control_station_block", () ->
+                    new FormixControlStationBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE)
+                            .strength(-1.0F, 3600000.0F)
+                            .noLootTable()
+                            .noOcclusion()),
+            CreativeModeTabs.FUNCTIONAL_BLOCKS);
+
+    public static final RegistryObject<Block> FORMIX_CONTROL_STATION_INACTIVE_BLOCK = registerBlock("formix_control_station_inactive_block", () ->
+                    new FormixControlStationInactiveBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_PURPLE)
+                            .strength(-1.0F, 3600000.0F)
+                            .noLootTable()
+                            .noOcclusion()),
+            CreativeModeTabs.FUNCTIONAL_BLOCKS);
+
     public static final RegistryObject<Block> GARRISON_ENTRY_BLOCK = registerBlock("garrison_entry_block", () ->
                     new GarrisonEntryBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY)
                             .strength(-1.0F, 3600000.0F)
