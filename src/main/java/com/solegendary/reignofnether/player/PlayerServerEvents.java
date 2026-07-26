@@ -818,10 +818,8 @@ public class PlayerServerEvents {
     public static void disableOrthoview(int id) {
         orthoviewPlayers.removeIf(p -> p.getId() == id);
         // flying/noPhysics reset for non-Creative players is handled by PlayerMixin.tick() on the
-        // next tick, now that orthoviewPlayers no longer contains this id - see that class for
-        // the fix. Not duplicated here on purpose (this exact pattern - the same state mutated in
-        // two places - has already caused divergence bugs in this project, see
-        // PROJECT_NOTES/FORMIX_FACTION_LOG.md).
+        // next tick, now that orthoviewPlayers no longer contains this id. Not duplicated here on
+        // purpose - see PlayerMixin for the fix and PROJECT_NOTES/FORMIX_FACTION_LOG.md for why.
     }
 
     private static ServerPlayer getPlayerById(int playerId) {

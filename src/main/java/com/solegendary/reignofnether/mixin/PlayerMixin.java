@@ -36,6 +36,14 @@ public abstract class PlayerMixin {
     // branch below that resets both for non-Creative players. Creative players are left alone -
     // flying is their normal expected ability there.
     //
+    // A second, related bug was also found and fixed separately (see
+    // OrthoviewClientEvents.onClientLogin): OrthoviewClientEvents.enabled is a static field only
+    // ever flipped inside toggleEnable(), not tied to world lifecycle. If a player leaves a world
+    // while still in orthoview (Save & Quit, disconnect, crash) instead of explicitly toggling it
+    // off, `enabled` stays true into the next world join within the same client session - making
+    // this injection force flying/noPhysics on from tick 1, before the player ever presses the
+    // orthoview key. Fixed by resetting `enabled` on every ClientPlayerNetworkEvent.LoggingIn.
+    //
     // NOTE: this block was previously commented out and restricted to Creative-only players by
     // the original mod author, reason unknown (possibly an unfinished feature, possibly this
     // exact bug found in Survival/Adventure and never diagnosed). Re-enabled and extended to all

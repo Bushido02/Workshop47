@@ -121,8 +121,8 @@ public class OrthoviewClientEvents {
     public static void setMinOrthoviewY(double value) {
         minOrthoviewY = value;
         if (MC.level != null && MC.player != null && MC.player.getY() < value + 15 && MC.gameMode != null &&
-            (MC.gameMode.getPlayerMode() == GameType.CREATIVE ||
-            MC.gameMode.getPlayerMode() == GameType.SPECTATOR) && isEnabled()) {
+                (MC.gameMode.getPlayerMode() == GameType.CREATIVE ||
+                        MC.gameMode.getPlayerMode() == GameType.SPECTATOR) && isEnabled()) {
             MC.player.move(MoverType.SELF, new Vec3(0, minOrthoviewY - MC.player.getY() + 15, 0));
         }
     }
@@ -262,6 +262,22 @@ public class OrthoviewClientEvents {
         forceMoveCam(pos.getX(), pos.getZ(), cameraLockTicks);
     }
 
+    // FIX (26.07.2026): `enabled` is a static field that only ever gets flipped inside
+    // toggleEnable() - it is NOT tied to the lifecycle of a world/server, only to the client JVM.
+    // If a player leaves a world (Save & Quit, disconnect, crash) while still in orthoview
+    // (enabled == true) instead of explicitly toggling it off first, the flag stays true across
+    // world loads within the same client session. On the very next world join,
+    // PlayerMixin.tick() sees OrthoviewClientEvents.isEnabled() == true from tick 1 and
+    // immediately forces flying/noPhysics on - producing "I can fly and clip through blocks the
+    // moment I spawn in Survival, before ever pressing the orthoview key" (confirmed by user
+    // 26.07.2026). Explicitly resetting on every world join closes this gap regardless of how the
+    // previous session ended. See PROJECT_NOTES/FORMIX_FACTION_LOG.md for the full writeup.
+    @SubscribeEvent
+    public static void onClientLogin(ClientPlayerNetworkEvent.LoggingIn evt) {
+        enabled = false;
+        enabledCount = 0;
+    }
+
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent evt) {
         if (evt.phase != TickEvent.Phase.END) {
@@ -276,7 +292,7 @@ public class OrthoviewClientEvents {
         } catch (NullPointerException | IllegalStateException e) {
             cursorMode = GLFW.GLFW_CURSOR_NORMAL;
         }
-        
+
         boolean grabbed = cursorMode == GLFW.GLFW_CURSOR_DISABLED;
         if (MC.screen == null && !grabbed && MC.isWindowActive()) {
             MC.mouseHandler.releaseMouse();
@@ -293,11 +309,11 @@ public class OrthoviewClientEvents {
         }
 
         if (MiscUtil.isGroundBlock(MC.level, MC.player.blockPosition().offset(0, -5, 0))
-            && MC.player.getOnPos().getY() <= orthoviewPlayerMaxY) {
+                && MC.player.getOnPos().getY() <= orthoviewPlayerMaxY) {
             panCam(0, 1f, 0);
         }
         if (!MiscUtil.isGroundBlock(MC.level, MC.player.blockPosition().offset(0, -6, 0))
-            && MC.player.getOnPos().getY() >= orthoviewPlayerBaseY) {
+                && MC.player.getOnPos().getY() >= orthoviewPlayerBaseY) {
             panCam(0, -1f, 0);
         }
 
@@ -315,7 +331,7 @@ public class OrthoviewClientEvents {
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent evt) throws NoSuchFieldException {
         if (evt.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS ||
-            !OrthoviewClientEvents.isEnabled()) {
+                !OrthoviewClientEvents.isEnabled()) {
             return;
         }
         if (forceRotFramesLeft > 0) {
@@ -506,7 +522,7 @@ public class OrthoviewClientEvents {
             if (currentDifficulty == Difficulty.PEACEFUL) {
                 minecraft.getSingleplayerServer().setDifficulty(Difficulty.EASY, true);
                 HudClientEvents.showTemporaryMessage(
-                    "RTS units cannot spawn in Peaceful. Your difficulty has been set to Easy.");
+                        "RTS units cannot spawn in Peaceful. Your difficulty has been set to Easy.");
             }
         }
     }
@@ -651,7 +667,7 @@ public class OrthoviewClientEvents {
         }
 
         if ((evt.getMouseButton() == GLFW.GLFW_MOUSE_BUTTON_1 && Keybindings.altMod.isDown())
-            || evt.getMouseButton() == GLFW.GLFW_MOUSE_BUTTON_3) {
+                || evt.getMouseButton() == GLFW.GLFW_MOUSE_BUTTON_3) {
             cameraMovingByMouse = true;
 
             // Normalize drag delta by frame time to prevent drift when Vsync is off
