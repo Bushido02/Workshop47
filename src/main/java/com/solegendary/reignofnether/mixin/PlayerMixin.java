@@ -25,17 +25,22 @@ public abstract class PlayerMixin {
     // noclip + flight for orthoview players regardless of game mode (Creative/Survival/Adventure).
     // Needed because entering orthoview teleports the player up to orthoviewPlayerBaseY; without
     // this, non-Creative players would immediately start falling/taking fall damage once gravity
-    // applies. tick() naturally reverses all of this so no explicit reversal is needed when
-    // leaving orthoview - the ability flags are only forced on while the player is in the
-    // orthoview list/has it locally enabled.
+    // applies.
+    //
+    // FIX (26.07.2026): the comment below used to claim "tick() naturally reverses all of this
+    // so no explicit reversal is needed when leaving orthoview" - this was wrong. Confirmed live
+    // in-game: players got stuck floating/unable to descend (stuck in a flying state) after
+    // leaving orthoview in Survival/Adventure, only fixed by re-entering and exiting orthoview
+    // again. Root cause: this injection only ever sets noPhysics/flying = true, it never sets
+    // them back to false once the player is no longer in orthoview. Added an explicit else
+    // branch below that resets both for non-Creative players. Creative players are left alone -
+    // flying is their normal expected ability there.
     //
     // NOTE: this block was previously commented out and restricted to Creative-only players by
-    // the original mod author, reason unknown (possibly an unfinished feature, possibly a bug
-    // found in Survival/Adventure). Re-enabled and extended to all game modes on 2026-07-21 per
-    // user request - see PROJECT_NOTES/FORMIX_FACTION_LOG.md section on RTS-in-Survival for
-    // context. If this causes issues (players stuck flying after leaving orthoview, clipping
-    // through terrain unexpectedly, etc), the safest revert is to re-add the player.isCreative()
-    // check removed below.
+    // the original mod author, reason unknown (possibly an unfinished feature, possibly this
+    // exact bug found in Survival/Adventure and never diagnosed). Re-enabled and extended to all
+    // game modes on 2026-07-21 per user request - see PROJECT_NOTES/FORMIX_FACTION_LOG.md for
+    // context.
     @Inject(
             method = "tick()V",
             at = @At("HEAD")
@@ -48,12 +53,24 @@ public abstract class PlayerMixin {
             Integer serverPlayerId = orthoviewPlayer.getId();
             orthoIds.add(serverPlayerId);
         }
-        if (entity instanceof Player player &&
-            (orthoIds.contains(id) || (this.level.isClientSide() && OrthoviewClientEvents.isEnabled()))) {
-            this.noPhysics = true;
-            if (!player.getAbilities().flying) {
-                player.getAbilities().flying = true;
-                player.onUpdateAbilities();
+        if (entity instanceof Player player) {
+            boolean inOrthoview = orthoIds.contains(id) ||
+                    (this.level.isClientSide() && OrthoviewClientEvents.isEnabled());
+            if (inOrthoview) {
+                this.noPhysics = true;
+                if (!player.getAbilities().flying) {
+                    player.getAbilities().flying = true;
+                    player.onUpdateAbilities();
+                }
+            } else if (this.noPhysics && !player.isCreative()) {
+                // player just left orthoview (or never should have had these forced) and isn't
+                // in Creative - undo what this mixin forced on, since nothing else in the
+                // codebase does. See FIX note above.
+                this.noPhysics = false;
+                if (player.getAbilities().flying) {
+                    player.getAbilities().flying = false;
+                    player.onUpdateAbilities();
+                }
             }
         }
     }

@@ -114,14 +114,14 @@ public class PlayerServerEvents {
     // thebeastofcaerbannog - spawns the Killer Rabbit
     // elitetaurenchieftain - levels all owned heroes to 10
     public static final List<String> singleWordCheats = List.of(
-        "warpten",
-        "operationcwal",
-        "modifythephasevariance",
-        "medievalman",
-        "foodforthought",
-        "thereisnospoon",
-        "slipslopslap",
-        "wouldyoukindly"
+            "warpten",
+            "operationcwal",
+            "modifythephasevariance",
+            "medievalman",
+            "foodforthought",
+            "thereisnospoon",
+            "slipslopslap",
+            "wouldyoukindly"
     );
 
     public static void saveRTSPlayers() {
@@ -329,7 +329,7 @@ public class PlayerServerEvents {
         if (!TutorialServerEvents.isEnabled()) {
             if (!isRTSPlayer(serverPlayer.getId())) {
                 serverPlayer.sendSystemMessage(Component.translatable("tutorial.reignofnether.welcome")
-                    .withStyle(Style.EMPTY.withBold(true)));
+                        .withStyle(Style.EMPTY.withBold(true)));
                 serverPlayer.sendSystemMessage(Component.translatable("tutorial.reignofnether.join"));
                 serverPlayer.sendSystemMessage(Component.translatable("tutorial.reignofnether.help"));
                 serverPlayer.sendSystemMessage(Component.translatable("tutorial.reignofnether.controls"));
@@ -339,7 +339,7 @@ public class PlayerServerEvents {
                 }
             } else {
                 serverPlayer.sendSystemMessage(Component.translatable("tutorial.reignofnether.welcome_back")
-                    .withStyle(Style.EMPTY.withBold(true)));
+                        .withStyle(Style.EMPTY.withBold(true)));
             }
             if (serverPlayer.hasPermissions(4)) {
                 serverPlayer.sendSystemMessage(Component.literal(""));
@@ -585,8 +585,8 @@ public class PlayerServerEvents {
                 Entity entity = entityType != null ? entityType.create(level) : null;
                 if (entity != null) {
                     BlockPos bp = MiscUtil.getHighestNonAirBlock(level, new BlockPos((int) (pos.x + i), 0, (int) pos.z))
-                        .above()
-                        .above();
+                            .above()
+                            .above();
                     ((Unit) entity).setOwnerName(bot.name);
                     entity.moveTo(bp, 0, 0);
                     level.addFreshEntity(entity);
@@ -787,8 +787,8 @@ public class PlayerServerEvents {
 
             // apply all cheats - NOTE can cause concurrentModificationException clientside
             if (words.length == 1 && words[0].equalsIgnoreCase("allcheats") && (
-                playerName.equalsIgnoreCase("solegendary") ||
-                playerName.equalsIgnoreCase("altsolegendary"))
+                    playerName.equalsIgnoreCase("solegendary") ||
+                            playerName.equalsIgnoreCase("altsolegendary"))
             ) {
                 ResourcesServerEvents.addSubtractResources(new Resources(playerName, 99999, 99999, 99999));
                 UnitServerEvents.maxPopulation = 99999;
@@ -817,6 +817,11 @@ public class PlayerServerEvents {
 
     public static void disableOrthoview(int id) {
         orthoviewPlayers.removeIf(p -> p.getId() == id);
+        // flying/noPhysics reset for non-Creative players is handled by PlayerMixin.tick() on the
+        // next tick, now that orthoviewPlayers no longer contains this id - see that class for
+        // the fix. Not duplicated here on purpose (this exact pattern - the same state mutated in
+        // two places - has already caused divergence bugs in this project, see
+        // PROJECT_NOTES/FORMIX_FACTION_LOG.md).
     }
 
     private static ServerPlayer getPlayerById(int playerId) {
@@ -1130,10 +1135,10 @@ public class PlayerServerEvents {
 
         evt.getDispatcher().register(Commands.literal("rts-lock").then(Commands.literal("enable").executes((command) -> {
             if ((command.getSource() != null &&
-                command.getSource().getPlayer() != null &&
-                command.getSource().getPlayer().hasPermissions(4)) ||
-                (command.getSource() != null &&
-                !command.getSource().isPlayer())) {
+                    command.getSource().getPlayer() != null &&
+                    command.getSource().getPlayer().hasPermissions(4)) ||
+                    (command.getSource() != null &&
+                            !command.getSource().isPlayer())) {
                 setRTSLock(true);
                 return 1;
             }
@@ -1142,10 +1147,10 @@ public class PlayerServerEvents {
 
         evt.getDispatcher().register(Commands.literal("rts-lock").then(Commands.literal("disable").executes((command) -> {
             if ((command.getSource() != null &&
-                command.getSource().getPlayer() != null &&
-                command.getSource().getPlayer().hasPermissions(4)) ||
-                (command.getSource() != null &&
-                !command.getSource().isPlayer())) {
+                    command.getSource().getPlayer() != null &&
+                    command.getSource().getPlayer().hasPermissions(4)) ||
+                    (command.getSource() != null &&
+                            !command.getSource().isPlayer())) {
                 setRTSLock(false);
                 return 1;
             }
