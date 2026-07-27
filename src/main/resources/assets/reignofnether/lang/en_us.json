@@ -1858,5 +1858,6 @@
   "matchstart.reignofnether.gr.beacon_win": "Beacon win: %d min",
   "matchstart.reignofnether.gr.beacon_win.tip": "Left-click +1 / right-click −1.",
   "matchstart.reignofnether.gr.allowed_heroes": "Allowed heroes: %d",
-  "matchstart.reignofnether.gr.allowed_heroes.tip": "Cycle 0 → 1 → 2."
+  "matchstart.reignofnether.gr.allowed_heroes.tip": "Cycle 0 → 1 → 2.",
+  "itemGroup.reignofnether.formix": "Formix"
 }

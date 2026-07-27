@@ -84,16 +84,23 @@ src/main/java/com/solegendary/reignofnether/
 ├── unit/modelling/renderers/   — рендереры (связывают модель + текстуру)
 ├── unit/modelling/animations/  — анимации (idle/walk/attack)
 ├── building/buildings/<фракция>/ — классы зданий
+├── blocks/                     — кастомные блоки (в т.ч. GeckoLib-блоки, см. раздел 4.5)
 ├── resources/                  — экономика (Resources, ResourceCosts, ResourceSources)
 ├── registrars/                 — регистрация EntityType, атрибутов и т.д. в Minecraft/Forge
+│   └── CreativeModeTabRegistrar.java — вкладка Formix в творческом режиме;
+│                                        добавить новый предмет = 1 строка в
+│                                        списке FORMIX_TAB_ITEMS (см. раздел 4.5)
 ├── hud/                        — весь игровой интерфейс (кнопки, панели, счётчики)
 └── ...
 
 src/main/resources/assets/reignofnether/
 ├── textures/entities/          — текстуры 3D-моделей юнитов (PNG)
+├── textures/block/             — текстуры GeckoLib-моделей блоков (PNG, см. раздел 4.5)
 ├── textures/mobheads/          — маленькие иконки-портреты (кнопки производства)
 ├── textures/icons/             — иконки ресурсов/предметов в HUD
 ├── structures/                 — .nbt файлы построек (форма здания из блоков)
+├── geo/ + animations/          — GeckoLib geo.json/animation.json для блоков (раздел 4.5)
+├── blockstates/ + models/      — обязательные JSON для любого блока (в т.ч. GeckoLib)
 └── lang/en_us.json             — весь текст в игре (названия, тултипы, кнопки)
 ```
 
@@ -140,6 +147,65 @@ placeholder-геометрию.
    `setupAnim()` в модели, чтобы анимации ходьбы/атаки применялись к
    правильным частям. Скажи мне, если что-то не двигается как надо после
    замены — это обычно и есть причина.
+
+---
+
+## 4.5 Рецепт: добавить/заменить GeckoLib-модель блока (не юнита)
+
+**Важное отличие от раздела 4 выше:** раздел 4 — это модели ЮНИТОВ
+(ваниль-пайплайн Blockbench `Export Java Entity`, класс
+`HierarchicalModel`/`ModelPart`). Этот раздел — про модели БЛОКОВ через
+GeckoLib (терминал control station — первый и пока единственный пример
+в проекте, см. `FORMIX_FACTION_LOG.md` разделы 1.13–1.15). Два разных
+формата, не взаимозаменяемы.
+
+**Когда:** ты сделал новую GeckoLib-модель в Blockbench для блока
+(например второе здание/устройство фракции) и хочешь, чтобы оно
+появилось в игре без ошибок компиляции/missing-texture.
+
+**Что мне нужно от тебя, чтобы не наступить на уже известные грабли:**
+
+1. **`.bbmodel` файл**, экспортированный именно как GeckoLib-модель
+   (Blockbench: убедись, что при создании проекта выбран формат
+   "GeckoLib" — не "Generic Model"/"Java Block/Item"). Если сомневаешься
+   — просто пришли файл, я проверю поле `"model_format"` внутри.
+2. **Скажи явно: блок или предмет держится в руке анимированным** — это
+   меняет объём работы. Для блока, который просто стоит в мире
+   (анимация видна только когда он размещён) — не нужен GeckoLib-Item.
+   Для полноценной 3D-модели в руке/инвентаре (как у терминала после
+   26.07.2026) — нужен отдельный `GeoItem`/`GeoItemRenderer` слой, вдвое
+   больше файлов.
+3. **Габариты модели в блоках** (например "3 на 3 в высоту 4 блока") —
+   я не могу надёжно вычислить их только по координатам элементов в
+   `.bbmodel` (декоративные выступы искажают bounding box), спрошу явно,
+   если не скажешь сам.
+
+**Что я сделаю на своей стороне (не твоя забота, но для понимания
+объёма):**
+- Конвертирую `.bbmodel` → `.geo.json` + `.animation.json` (у меня нет
+  доступа к самому Blockbench, поэтому это самописный конвертер, не
+  официальный экспортёр — я проверяю целостность программно: число
+  кубов, наличие keyframes, но НЕ визуально в игре).
+- Извлеку текстуру из `.bbmodel` (она хранится там же, в base64).
+- Создам блок/BlockEntity/GeoModel/BlockRenderer, плюс ОБЯЗАТЕЛЬНЫЕ
+  `blockstates/*.json` + `models/block/*.json` (простой `parent:
+  block/cross` — без них Minecraft считает блок "missing model" даже
+  при правильном `RenderShape.ENTITYBLOCK_ANIMATED`, это уже дважды
+  ловилось на терминале).
+- Если нужна 3D-модель в руке — дополнительно `Item implements GeoItem`
+  + `GeoItemRenderer` + `models/item/*.json` с `parent: "builtin/entity"`
+  (НЕ `block/cross` — это разные вещи, `builtin/entity` подключает
+  GeckoLib к рендеру предмета).
+- Добавлю в вкладку `CreativeModeTabRegistrar.FORMIX_TAB` (см. раздел 2
+  структуры проекта, файл `registrars/CreativeModeTabRegistrar.java`) —
+  одна строка в списке `FORMIX_TAB_ITEMS`, не нужно трогать
+  `ItemRegistrar`/`CommonModEvents` вручную каждый раз.
+
+**GeckoLib как зависимость** уже подключена в `build.gradle` (через
+Curse Maven, не напрямую с официального Cloudsmith — прямые версии не
+резолвились у тебя, см. `FORMIX_FACTION_LOG.md` раздел 1.14) — для
+новых GeckoLib-моделей ничего в `build.gradle` менять не нужно, это
+разовая настройка.
 
 ---
 

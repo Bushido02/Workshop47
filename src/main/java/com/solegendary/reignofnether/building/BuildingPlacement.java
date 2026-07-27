@@ -220,13 +220,13 @@ public class BuildingPlacement {
     }
 
     public BuildingPlacement(
-        Building building,
-        Level level,
-        BlockPos originPos,
-        Rotation rotation,
-        String ownerName,
-        ArrayList<BuildingBlock> blocks,
-        boolean isCapitol) {
+            Building building,
+            Level level,
+            BlockPos originPos,
+            Rotation rotation,
+            String ownerName,
+            ArrayList<BuildingBlock> blocks,
+            boolean isCapitol) {
         Objects.requireNonNull(building, "Building can't be null");
         this.building = building;
         this.level = level;
@@ -256,14 +256,14 @@ public class BuildingPlacement {
         this.minCorner = new BlockPos(minX, minY, minZ);
         this.maxCorner = new BlockPos(maxX, maxY, maxZ);
         this.centrePos = new BlockPos((int) ((float) (this.minCorner.getX() + this.maxCorner.getX()) / 2),
-            (int) ((float) (this.minCorner.getY() + this.maxCorner.getY()) / 2),
-            (int) ((float) (this.minCorner.getZ() + this.maxCorner.getZ()) / 2)
+                (int) ((float) (this.minCorner.getY() + this.maxCorner.getY()) / 2),
+                (int) ((float) (this.minCorner.getZ() + this.maxCorner.getZ()) / 2)
         );
 
         // re-hide players if they were revealed
         if (this.isCapitol && !this.level.isClientSide()) {
             if (BuildingUtils.getTotalCompletedBuildingsOwned(false, this.ownerName) == 1 &&
-                !TutorialServerEvents.isEnabled() && FogOfWarServerEvents.isEnabled()) {
+                    !TutorialServerEvents.isEnabled() && FogOfWarServerEvents.isEnabled()) {
                 sendMessageToAllPlayers("hud.reignofnether.placed_capitol", false, this.ownerName);
             }
             FogOfWarClientboundPacket.revealOrHidePlayer(false, this.ownerName);
@@ -355,19 +355,19 @@ public class BuildingPlacement {
 
     public boolean canAfford(String ownerName) {
         if (SandboxServer.isAnyoneASandboxPlayer() &&
-            (ownerName.isEmpty() || ownerName.equals("Enemy")))
+                (ownerName.isEmpty() || ownerName.equals("Enemy")))
             return true;
 
         if (SurvivalServerEvents.isEnabled() &&
-            SurvivalServerEvents.ENEMY_OWNER_NAME.equals(ownerName))
+                SurvivalServerEvents.ENEMY_OWNER_NAME.equals(ownerName))
             return true;
 
         for (Resources resources : ResourcesServerEvents.resourcesList)
             if (resources.ownerName.equals(ownerName)) {
                 return (
-                    resources.food >= building.cost.food &&
-                    resources.wood >= building.cost.wood &&
-                    resources.ore >= building.cost.ore
+                        resources.food >= building.cost.food &&
+                                resources.wood >= building.cost.wood &&
+                                resources.ore >= building.cost.ore
                 );
             }
         return false;
@@ -375,8 +375,8 @@ public class BuildingPlacement {
 
     public boolean isPosInsideBuilding(BlockPos bp) {
         return bp.getX() <= this.maxCorner.getX() && bp.getX() >= this.minCorner.getX()
-               && bp.getY() <= this.maxCorner.getY() && bp.getY() >= this.minCorner.getY()
-               && bp.getZ() <= this.maxCorner.getZ() && bp.getZ() >= this.minCorner.getZ();
+                && bp.getY() <= this.maxCorner.getY() && bp.getY() >= this.minCorner.getY()
+                && bp.getZ() <= this.maxCorner.getZ() && bp.getZ() >= this.minCorner.getZ();
     }
 
     public boolean isPosPartOfBuilding(BlockPos bp, boolean onlyPlacedBlocks) {
@@ -472,7 +472,7 @@ public class BuildingPlacement {
 
     public int getMaxHealth() {
         return (int) Math.round(getBuilding().isUsingSetHealth(this) ? getBuilding().getMaxHealth(this) :
-                    ((getHighestBlockCountReached() / MIN_BLOCKS_PERCENT) - (getHighestBlockCountReached())) * (getHealthPerBlock() / 2));
+                ((getHighestBlockCountReached() / MIN_BLOCKS_PERCENT) - (getHighestBlockCountReached())) * (getHealthPerBlock() / 2));
     }
 
     public void queueAllBlocks(ServerLevel level) {
@@ -516,9 +516,9 @@ public class BuildingPlacement {
             for (BuildingBlock block : unplacedBlocks) {
                 BlockPos bp = block.getBlockPos();
                 if ((bp.getY() <= minY) && (
-                    !level.getBlockState(bp.below()).isAir() || !level.getBlockState(bp.east()).isAir()
-                    || !level.getBlockState(bp.west()).isAir() || !level.getBlockState(bp.south()).isAir()
-                    || !level.getBlockState(bp.north()).isAir() || !level.getBlockState(bp.above()).isAir()
+                        !level.getBlockState(bp.below()).isAir() || !level.getBlockState(bp.east()).isAir()
+                                || !level.getBlockState(bp.west()).isAir() || !level.getBlockState(bp.south()).isAir()
+                                || !level.getBlockState(bp.north()).isAir() || !level.getBlockState(bp.above()).isAir()
                 )) {
                     nonFloatingBlocks += 1;
                     validBlocks.add(block);
@@ -568,11 +568,11 @@ public class BuildingPlacement {
 
     private boolean isDestroyedAndNotNextToLiquid(BuildingBlock block) {
         if (!(getBuilding() instanceof AbstractBridge) && this.level.getBlockState(block.getBlockPos()).getFluidState().isEmpty() && (
-            !this.level.getBlockState(block.getBlockPos().above()).getFluidState().isEmpty()
-            || !this.level.getBlockState(block.getBlockPos().north()).getFluidState().isEmpty()
-            || !this.level.getBlockState(block.getBlockPos().south()).getFluidState().isEmpty()
-            || !this.level.getBlockState(block.getBlockPos().east()).getFluidState().isEmpty()
-            || !this.level.getBlockState(block.getBlockPos().west()).getFluidState().isEmpty()
+                !this.level.getBlockState(block.getBlockPos().above()).getFluidState().isEmpty()
+                        || !this.level.getBlockState(block.getBlockPos().north()).getFluidState().isEmpty()
+                        || !this.level.getBlockState(block.getBlockPos().south()).getFluidState().isEmpty()
+                        || !this.level.getBlockState(block.getBlockPos().east()).getFluidState().isEmpty()
+                        || !this.level.getBlockState(block.getBlockPos().west()).getFluidState().isEmpty()
         )) {
             return false;
         }
@@ -650,9 +650,9 @@ public class BuildingPlacement {
 
         this.blocks.forEach((BuildingBlock block) -> {
             if ((!block.getBlockState().getFluidState().isEmpty() ||
-                 (block.getBlockState().hasProperty(BlockStateProperties.WATERLOGGED) &&
-                  block.getBlockState().getValue(BlockStateProperties.WATERLOGGED))) &&
-                !block.getBlockState().isAir()) {
+                    (block.getBlockState().hasProperty(BlockStateProperties.WATERLOGGED) &&
+                            block.getBlockState().getValue(BlockStateProperties.WATERLOGGED))) &&
+                    !block.getBlockState().isAir()) {
                 BlockState air = Blocks.AIR.defaultBlockState();
                 serverLevel.setBlockAndUpdate(block.getBlockPos(), air);
             }
@@ -684,7 +684,7 @@ public class BuildingPlacement {
 
         if (!this.level.isClientSide() && isRTSPlayer(this.ownerName)) {
             if (BuildingUtils.getTotalCompletedBuildingsOwned(false, this.ownerName) == 0 &&
-                !SandboxServer.isSandboxPlayer(this.ownerName)) {
+                    !SandboxServer.isSandboxPlayer(this.ownerName)) {
                 PlayerServerEvents.defeat(this.ownerName, Component.translatable("server.reignofnether.lost_buildings").getString());
             } else if (this.isCapitol) {
                 var flag = false;
@@ -696,9 +696,9 @@ public class BuildingPlacement {
                 }
                 if (!flag && FogOfWarServerEvents.isEnabled()) {
                     sendMessageToAllPlayers("server.reignofnether.lost_capitol",
-                        false,
-                        this.ownerName,
-                        PlayerServerEvents.TICKS_TO_REVEAL / ResourceCost.TICKS_PER_SECOND
+                            false,
+                            this.ownerName,
+                            PlayerServerEvents.TICKS_TO_REVEAL / ResourceCost.TICKS_PER_SECOND
                     );
                 }
             }
@@ -718,9 +718,9 @@ public class BuildingPlacement {
         if (lastAttacker instanceof Unit unit && !unit.getOwnerName().isEmpty()) {
             ResourceCost cost = building.cost;
             Resources resources = new Resources(unit.getOwnerName(),
-                (int) (cost.food * NEUTRAL_BUILDING_BOUNTY_PERCENT),
-                (int) (cost.wood * NEUTRAL_BUILDING_BOUNTY_PERCENT),
-                (int) (cost.ore * NEUTRAL_BUILDING_BOUNTY_PERCENT)
+                    (int) (cost.food * NEUTRAL_BUILDING_BOUNTY_PERCENT),
+                    (int) (cost.wood * NEUTRAL_BUILDING_BOUNTY_PERCENT),
+                    (int) (cost.ore * NEUTRAL_BUILDING_BOUNTY_PERCENT)
             );
             if (resources.getTotalValue() > 0) {
                 ResourcesClientboundPacket.showFloatingText(resources, centrePos);
@@ -735,7 +735,7 @@ public class BuildingPlacement {
         Random rand = new Random();
 
         if (this.getFaction() == Faction.MONSTERS && ResearchServerEvents.playerHasResearch(this.ownerName,
-            ProductionItems.RESEARCH_SILVERFISH
+                ProductionItems.RESEARCH_SILVERFISH
         )) {
             randomSilverfishSpawn(pos);
         }
@@ -799,12 +799,12 @@ public class BuildingPlacement {
         for (BuildingBlock buildingBlock : this.blocks) {
             var blockPos = buildingBlock.getBlockPos();
             if (
-                blockPos.getY() == originPos.getY() + 1
-                && (
-                    blockPos.getX() == originPos.getX()
-                    || blockPos.getX() == maxCorner.getX()
-                    || blockPos.getZ() == originPos.getZ()
-                    || blockPos.getZ() == maxCorner.getZ())) {
+                    blockPos.getY() == originPos.getY() + 1
+                            && (
+                            blockPos.getX() == originPos.getX()
+                                    || blockPos.getX() == maxCorner.getX()
+                                    || blockPos.getZ() == originPos.getZ()
+                                    || blockPos.getZ() == maxCorner.getZ())) {
                 blockPoses.add(blockPos);
             }
         }
@@ -824,18 +824,30 @@ public class BuildingPlacement {
             BlockPos centreBp = this.centrePos;
             ChunkAccess chunk = level.getChunk(centreBp);
             ForgeChunkManager.forceChunk((ServerLevel) level,
-                ReignOfNether.MOD_ID,
-                centreBp,
-                chunk.getPos().x,
-                chunk.getPos().z,
-                add,
-                true
+                    ReignOfNether.MOD_ID,
+                    centreBp,
+                    chunk.getPos().x,
+                    chunk.getPos().z,
+                    add,
+                    true
             );
         }
     }
 
     public void onBuilt() {
         isBuilt = true;
+
+        // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
+        // unconditional (not throttled), fires exactly once per building per side when construction completes.
+        if (getBuilding() != null && getBuilding().getClass().getSimpleName().contains("Formix")) {
+            System.out.println("[FORMIX-DEBUG-ONBUILT] side=" + (this.level.isClientSide() ? "CLIENT" : "SERVER")
+                    + " building=" + getBuilding().getClass().getSimpleName()
+                    + " ownerName='" + ownerName + "'"
+                    + " isCapitol=" + isCapitol
+                    + " cost.population=" + getBuilding().cost.population
+                    + " originPos=" + originPos);
+        }
+
         if (!this.level.isClientSide()) {
             FrozenChunkClientboundPacket.setBuildingBuiltServerside(this.originPos);
             if (isCapitol && BuildingUtils.getTotalCompletedBuildingsOwned(false, ownerName) <= 1) {
@@ -848,7 +860,7 @@ public class BuildingPlacement {
         } else {
             TutorialClientEvents.updateStage();
             if (this.isCapitol && !SandboxClientEvents.isSandboxPlayer() &&
-                getTotalCompletedBuildingsOwned(this.level.isClientSide(), ownerName) == 1)
+                    getTotalCompletedBuildingsOwned(this.level.isClientSide(), ownerName) == 1)
                 SoundClientEvents.playFactionCalmTheme(this.getFaction(), ownerName);
         }
 
@@ -898,7 +910,7 @@ public class BuildingPlacement {
         }
 
         if (this.level.isClientSide && (
-            !FogOfWarClientEvents.isEnabled() || FogOfWarClientEvents.isInBrightChunk(originPos)
+                !FogOfWarClientEvents.isEnabled() || FogOfWarClientEvents.isInBrightChunk(originPos)
         )) {
             isExploredClientside = true;
         }
@@ -938,7 +950,7 @@ public class BuildingPlacement {
                     builderCount += 1;
             }
             if (((Mob) workerUnit).getActiveEffectsMap().containsKey(MobEffects.DIG_SPEED) ||
-                ((Mob) workerUnit).getActiveEffectsMap().containsKey(MobEffectRegistrar.TEMPORARY_EFFICIENCY.get()))
+                    ((Mob) workerUnit).getActiveEffectsMap().containsKey(MobEffectRegistrar.TEMPORARY_EFFICIENCY.get()))
                 builderCount += 1;
         }
 
@@ -970,7 +982,7 @@ public class BuildingPlacement {
                 }
 
                 if (getBuilding() instanceof PortalBasic && !BuildingServerEvents.isOnNetherBlocks(blocks, originPos, serverLevel)
-                    && !ResearchServerEvents.playerHasResearch(ownerName, ProductionItems.RESEARCH_ADVANCED_PORTALS)) {
+                        && !ResearchServerEvents.playerHasResearch(ownerName, ProductionItems.RESEARCH_ADVANCED_PORTALS)) {
                     msPerBuild *= PortalPlacement.NON_NETHER_BUILD_TIME_MODIFIER;
                 }
 
@@ -1079,16 +1091,16 @@ public class BuildingPlacement {
 
         int numNearbyAnimals = 0;
         for (Animal animal : MiscUtil.getEntitiesWithinRange(new Vector3d(centrePos.getX(),
-            centrePos.getY(),
-            centrePos.getZ()
+                centrePos.getY(),
+                centrePos.getZ()
         ), range, Animal.class, level)) {
             if (ResourceSources.isHuntableAnimal(animal)) numNearbyAnimals++;
         }
         int numNearbyChickens = MiscUtil.getEntitiesWithinRange(new Vector3d(centrePos.getX(),
-                centrePos.getY(),
-                centrePos.getZ()
-            ), range, Chicken.class, level)
-            .size();
+                        centrePos.getY(),
+                        centrePos.getZ()
+                ), range, Chicken.class, level)
+                .size();
 
         if (numNearbyAnimals - (numNearbyChickens / 2) >= MAX_ANIMALS) {
             return;
@@ -1127,18 +1139,18 @@ public class BuildingPlacement {
                 }
             }
         } while (!spawnBs.isSolid()
-                 || spawnBs.getBlock() == Blocks.BARRIER
-                 || spawnBs.is(BlockTags.PLANKS)
-                 || ResourceSources.getBlockResourceName(spawnBp, level) != ResourceName.NONE
-                 || spawnBp.distSqr(centrePos) < ANIMAL_SPAWN_RANGE_MIN * ANIMAL_SPAWN_RANGE_MIN
-                 || spawnBp.distSqr(centrePos) > range * range
-                 || Math.abs(spawnBp.getY() - minCorner.below().getY()) > animalSpawnYDiff
-                 || BuildingUtils.isPosInsideAnyBuilding(level.isClientSide(), spawnBp)
-                 || BuildingUtils.isPosInsideAnyBuilding(level.isClientSide(), spawnBp.above())
-                 || !level.getWorldBorder().isWithinBounds(spawnBp)
-                 || spawnBs.is(BlockTags.FENCES)
-                 || spawnBs.is(BlockTags.WALLS)
-                 || BlockUtils.isBottomSlab(spawnBs));
+                || spawnBs.getBlock() == Blocks.BARRIER
+                || spawnBs.is(BlockTags.PLANKS)
+                || ResourceSources.getBlockResourceName(spawnBp, level) != ResourceName.NONE
+                || spawnBp.distSqr(centrePos) < ANIMAL_SPAWN_RANGE_MIN * ANIMAL_SPAWN_RANGE_MIN
+                || spawnBp.distSqr(centrePos) > range * range
+                || Math.abs(spawnBp.getY() - minCorner.below().getY()) > animalSpawnYDiff
+                || BuildingUtils.isPosInsideAnyBuilding(level.isClientSide(), spawnBp)
+                || BuildingUtils.isPosInsideAnyBuilding(level.isClientSide(), spawnBp.above())
+                || !level.getWorldBorder().isWithinBounds(spawnBp)
+                || spawnBs.is(BlockTags.FENCES)
+                || spawnBs.is(BlockTags.WALLS)
+                || BlockUtils.isBottomSlab(spawnBs));
 
         EntityType<? extends Animal> animalType = null;
 
@@ -1180,12 +1192,12 @@ public class BuildingPlacement {
         BlockPos maxCorner = getMaxCorner(getBlocks()).offset((int) addedRange / 2, -1, (int) addedRange / 2);
 
         BlockPos minOrigin = new BlockPos((int) Math.round(Math.floor(minCorner.getX() / 16d) * 16),
-            (int) Math.round(Math.floor(minCorner.getY() / 16d) * 16),
-            (int) Math.round(Math.floor(minCorner.getZ() / 16d) * 16)
+                (int) Math.round(Math.floor(minCorner.getY() / 16d) * 16),
+                (int) Math.round(Math.floor(minCorner.getZ() / 16d) * 16)
         );
         BlockPos maxOrigin = new BlockPos((int) Math.round(Math.floor(maxCorner.getX() / 16d) * 16),
-            (int) Math.round(Math.floor(maxCorner.getY() / 16d) * 16),
-            (int) Math.round(Math.floor(maxCorner.getZ() / 16d) * 16)
+                (int) Math.round(Math.floor(maxCorner.getY() / 16d) * 16),
+                (int) Math.round(Math.floor(maxCorner.getZ() / 16d) * 16)
         );
         for (int x = minOrigin.getX(); x <= maxOrigin.getX(); x += 16)
             for (int y = minOrigin.getY() - 16; y <= maxOrigin.getY(); y += 16)
@@ -1282,8 +1294,8 @@ public class BuildingPlacement {
                 boolean capturedByAlly = AlliancesServerEvents.isAllied(ownerName, highestPopPlayer);
 
                 if (!highestPopPlayer.equals(ownerName) &&
-                    BuildingUtils.getTotalCompletedBuildingsOwned(false, ownerName) == 1 && // this one is about to change, making it 0
-                    !SandboxServer.isSandboxPlayer(ownerName)) {
+                        BuildingUtils.getTotalCompletedBuildingsOwned(false, ownerName) == 1 && // this one is about to change, making it 0
+                        !SandboxServer.isSandboxPlayer(ownerName)) {
                     PlayerServerEvents.defeat(ownerName, Component.translatable("server.reignofnether.lost_buildings").getString());
                 }
                 ownerName = highestPopPlayer;
@@ -1293,7 +1305,7 @@ public class BuildingPlacement {
 
                 for (LivingEntity le : UnitServerEvents.getAllUnits()) {
                     if (le instanceof AttackerUnit attackerUnit &&
-                        le instanceof Unit unit &&
+                            le instanceof Unit unit &&
                             AlliancesServerEvents.isAlliedOrOwned(ownerName, unit.getOwnerName())) {
                         if (attackerUnit.getAttackBuildingGoal() instanceof MeleeAttackBuildingGoal mabg &&
                                 mabg.getBuildingTarget() == this)
@@ -1337,8 +1349,8 @@ public class BuildingPlacement {
 
         // find any existing stands
         List<ArmorStand> entities = level.getEntitiesOfClass(ArmorStand.class,
-            new AABB(minCorner.getX(), minCorner.getY(), minCorner.getZ(),
-                maxCorner.getX(), maxCorner.getY(), maxCorner.getZ())
+                new AABB(minCorner.getX(), minCorner.getY(), minCorner.getZ(),
+                        maxCorner.getX(), maxCorner.getY(), maxCorner.getZ())
         );
         if (!entities.isEmpty()) {
             this.targetStand = entities.get(0);

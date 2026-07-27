@@ -80,8 +80,16 @@ public class BuildingClientEvents {
 
     // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
     private static long lastPopSupplyDebugLogMs = 0;
+    private static boolean loggedFirstCallEver = false;
 
     public static int getTotalPopulationSupply(String playerName) {
+        // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
+        // unconditional marker fired exactly once, proves whether this method is even reached at all
+        if (!loggedFirstCallEver) {
+            loggedFirstCallEver = true;
+            System.out.println("[FORMIX-DEBUG-SUPPLY-FIRSTCALL] getTotalPopulationSupply() was called for the first time this session, playerName='" + playerName + "'");
+        }
+
         if (ResearchClient.hasCheat("foodforthought")) {
             return GameruleClient.maxPopulation;
         }

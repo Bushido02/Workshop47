@@ -219,8 +219,15 @@ public class UnitClientEvents {
 
     // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
     private static long lastPopDebugLogMs = 0;
+    private static boolean loggedFirstPopCallEver = false;
 
     public static int getCurrentPopulation(String playerName) {
+        // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
+        // unconditional marker fired exactly once, proves whether this method is even reached at all
+        if (!loggedFirstPopCallEver) {
+            loggedFirstPopCallEver = true;
+            System.out.println("[FORMIX-DEBUG-POP-FIRSTCALL] getCurrentPopulation() was called for the first time this session, playerName='" + playerName + "'");
+        }
         int currentPopulation = 0;
         if (MC.level != null) {
             for (LivingEntity entity : allUnits) {

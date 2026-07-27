@@ -55,6 +55,14 @@ public interface ConvertableUnit {
         }
         newEntity.setYRot(oldEntity.getYRot());
 
+        // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
+        // unconditional, fires on every unit conversion (worker<->warrior included) on the server
+        if (oldEntity.getClass().getSimpleName().contains("Formix") || newEntity.getClass().getSimpleName().contains("Formix")) {
+            System.out.println("[FORMIX-DEBUG-CONVERT] owner='" + oldUnit.getOwnerName() + "'"
+                    + " old=" + oldEntity.getClass().getSimpleName() + "(id=" + oldEntity.getId() + ",discarded=false-yet)"
+                    + " new=" + newEntity.getClass().getSimpleName() + "(id=" + newEntity.getId() + ")");
+        }
+
         // discard with a reflected packet so the client has a chance to sync goals, command groups and selections
         //oldEntity.discard();
         return newEntity;

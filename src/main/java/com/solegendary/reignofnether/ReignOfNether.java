@@ -10,6 +10,7 @@ import com.solegendary.reignofnether.mixin.DownloadPackSourceAccessor;
 import com.solegendary.reignofnether.network.S2CReset;
 import com.solegendary.reignofnether.registrars.AttributeRegistrar;
 import com.solegendary.reignofnether.registrars.BlockEntityRegistrar;
+import com.solegendary.reignofnether.registrars.CreativeModeTabRegistrar;
 import com.solegendary.reignofnether.registrars.BlockRegistrar;
 import com.solegendary.reignofnether.registrars.ClientEventRegistrar;
 import com.solegendary.reignofnether.registrars.CommandArgumentRegistrar;
@@ -96,6 +97,7 @@ public class ReignOfNether {
         SoundRegistrar.init(mlctx);
         BlockRegistrar.init(mlctx);
         BlockEntityRegistrar.init(mlctx);
+        CreativeModeTabRegistrar.init(mlctx);
         GameRuleRegistrar.init();
         Buildings.init();
         FactionRegistries.register();
