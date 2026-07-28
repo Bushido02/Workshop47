@@ -55,16 +55,15 @@ public interface ConvertableUnit {
         }
         newEntity.setYRot(oldEntity.getYRot());
 
-        // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
-        // unconditional, fires on every unit conversion (worker<->warrior included) on the server
-        if (oldEntity.getClass().getSimpleName().contains("Formix") || newEntity.getClass().getSimpleName().contains("Formix")) {
-            System.out.println("[FORMIX-DEBUG-CONVERT] owner='" + oldUnit.getOwnerName() + "'"
-                    + " old=" + oldEntity.getClass().getSimpleName() + "(id=" + oldEntity.getId() + ",discarded=false-yet)"
-                    + " new=" + newEntity.getClass().getSimpleName() + "(id=" + newEntity.getId() + ")");
-        }
+        // Immediately mark the old entity for discard on this side (server) so it stops being counted
+        // in population/unit-list calculations for even a single tick. The old entity used to linger
+        // until the client round-trip (UnitClientboundPacket DISCARD) came back, which created a brief
+        // window where both old and new entities existed simultaneously and made population counters
+        // flicker (e.g. 3 -> 6 -> 3) during worker<->warrior conversion.
+        if (this instanceof ConvertableUnit convertable)
+            convertable.setShouldDiscard(true);
+        oldEntity.discard();
 
-        // discard with a reflected packet so the client has a chance to sync goals, command groups and selections
-        //oldEntity.discard();
         return newEntity;
     }
 }

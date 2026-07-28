@@ -217,17 +217,7 @@ public class UnitClientEvents {
         markSelectedUnitsChanged();
     }
 
-    // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
-    private static long lastPopDebugLogMs = 0;
-    private static boolean loggedFirstPopCallEver = false;
-
     public static int getCurrentPopulation(String playerName) {
-        // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
-        // unconditional marker fired exactly once, proves whether this method is even reached at all
-        if (!loggedFirstPopCallEver) {
-            loggedFirstPopCallEver = true;
-            System.out.println("[FORMIX-DEBUG-POP-FIRSTCALL] getCurrentPopulation() was called for the first time this session, playerName='" + playerName + "'");
-        }
         int currentPopulation = 0;
         if (MC.level != null) {
             for (LivingEntity entity : allUnits) {
@@ -244,26 +234,6 @@ public class UnitClientEvents {
                     } else if (building.getBuilding() instanceof IronGolemBuilding) {
                         currentPopulation += ResourceCosts.IRON_GOLEM.population;
                     }
-        }
-        // TEMP DEBUG (Formix population display investigation, remove after diagnosis):
-        // throttled to once per second to avoid flooding the console (this method runs every render frame)
-        long nowMs = System.currentTimeMillis();
-        if (nowMs - lastPopDebugLogMs > 1000) {
-            lastPopDebugLogMs = nowMs;
-            StringBuilder sb = new StringBuilder();
-            sb.append("[FORMIX-DEBUG-CLIENT] playerName='").append(playerName)
-                    .append("' result=").append(currentPopulation)
-                    .append(" units=[");
-            for (LivingEntity entity : allUnits) {
-                if (entity instanceof Unit unit) {
-                    sb.append(entity.getClass().getSimpleName())
-                            .append("(owner='").append(unit.getOwnerName())
-                            .append("',pop=").append(unit.getCost().population)
-                            .append(") ");
-                }
-            }
-            sb.append("]");
-            System.out.println(sb);
         }
         return currentPopulation;
     }

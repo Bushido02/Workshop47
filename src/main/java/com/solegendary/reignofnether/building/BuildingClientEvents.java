@@ -78,18 +78,7 @@ public class BuildingClientEvents {
 
     static final Minecraft MC = Minecraft.getInstance();
 
-    // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
-    private static long lastPopSupplyDebugLogMs = 0;
-    private static boolean loggedFirstCallEver = false;
-
     public static int getTotalPopulationSupply(String playerName) {
-        // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
-        // unconditional marker fired exactly once, proves whether this method is even reached at all
-        if (!loggedFirstCallEver) {
-            loggedFirstCallEver = true;
-            System.out.println("[FORMIX-DEBUG-SUPPLY-FIRSTCALL] getTotalPopulationSupply() was called for the first time this session, playerName='" + playerName + "'");
-        }
-
         if (ResearchClient.hasCheat("foodforthought")) {
             return GameruleClient.maxPopulation;
         }
@@ -99,26 +88,6 @@ public class BuildingClientEvents {
             if (building.ownerName.equals(playerName) && building.isBuilt) {
                 totalPopulationSupply += building.getBuilding().cost.population;
             }
-
-        // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
-        // throttled to once per second to avoid flooding the console (this method runs every render frame)
-        long nowMs = System.currentTimeMillis();
-        if (nowMs - lastPopSupplyDebugLogMs > 1000) {
-            lastPopSupplyDebugLogMs = nowMs;
-            StringBuilder sb = new StringBuilder();
-            sb.append("[FORMIX-DEBUG-CLIENT-SUPPLY] playerName='").append(playerName)
-                    .append("' result=").append(totalPopulationSupply)
-                    .append(" buildings=[");
-            for (BuildingPlacement building : buildings) {
-                sb.append(building.getBuilding().getClass().getSimpleName())
-                        .append("(owner='").append(building.ownerName)
-                        .append("',isBuilt=").append(building.isBuilt)
-                        .append(",costPopulation=").append(building.getBuilding().cost.population)
-                        .append(") ");
-            }
-            sb.append("]");
-            System.out.println(sb);
-        }
 
         return Math.min(GameruleClient.maxPopulation, totalPopulationSupply);
     }

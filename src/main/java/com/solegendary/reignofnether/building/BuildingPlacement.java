@@ -837,17 +837,6 @@ public class BuildingPlacement {
     public void onBuilt() {
         isBuilt = true;
 
-        // TEMP DEBUG (Formix population supply investigation, remove after diagnosis):
-        // unconditional (not throttled), fires exactly once per building per side when construction completes.
-        if (getBuilding() != null && getBuilding().getClass().getSimpleName().contains("Formix")) {
-            System.out.println("[FORMIX-DEBUG-ONBUILT] side=" + (this.level.isClientSide() ? "CLIENT" : "SERVER")
-                    + " building=" + getBuilding().getClass().getSimpleName()
-                    + " ownerName='" + ownerName + "'"
-                    + " isCapitol=" + isCapitol
-                    + " cost.population=" + getBuilding().cost.population
-                    + " originPos=" + originPos);
-        }
-
         if (!this.level.isClientSide()) {
             FrozenChunkClientboundPacket.setBuildingBuiltServerside(this.originPos);
             if (isCapitol && BuildingUtils.getTotalCompletedBuildingsOwned(false, ownerName) <= 1) {

@@ -71,8 +71,8 @@ public class CallToArmsBuildingFormix extends Ability {
     @Override
     public void use(Level level, BuildingPlacement buildingUsing, BlockPos targetBp) {
         List<FormixWorkerUnit> units = MiscUtil.getEntitiesWithinRange(
-                        new Vector3d(buildingUsing.centrePos.getX(), buildingUsing.centrePos.getY(), buildingUsing.centrePos.getZ()),
-                        range, FormixWorkerUnit.class, buildingUsing.getLevel());
+                new Vector3d(buildingUsing.centrePos.getX(), buildingUsing.centrePos.getY(), buildingUsing.centrePos.getZ()),
+                range, FormixWorkerUnit.class, buildingUsing.getLevel());
         for (FormixWorkerUnit unit : units) {
             if (unit.getOwnerName().equals(buildingUsing.ownerName)) {
                 Unit.resetBehaviours(unit);
@@ -82,6 +82,23 @@ public class CallToArmsBuildingFormix extends Ability {
         }
 
         if (!level.isClientSide()) {
+            // TEMP DEBUG (Formix population investigation, remove after diagnosis):
+            // fires every time the building's Call to Arms is used
+            try {
+                String ownerName = buildingUsing.ownerName;
+                int supply = com.solegendary.reignofnether.building.BuildingServerEvents.getTotalPopulationSupply(ownerName);
+                String debugMsg = "[FORMIX-DEBUG-CALLTOARMS-BUILDING] owner='" + ownerName + "' supply=" + supply
+                        + " thisBuilding.isBuilt=" + buildingUsing.isBuilt
+                        + " thisBuilding.pop=" + buildingUsing.getBuilding().cost.population
+                        + " workersInRange=" + units.size();
+                System.out.println(debugMsg);
+                net.minecraft.server.level.ServerPlayer sp = level.getServer().getPlayerList().getPlayerByName(ownerName);
+                if (sp != null)
+                    sp.sendSystemMessage(net.minecraft.network.chat.Component.literal(debugMsg));
+            } catch (Exception e) {
+                System.out.println("[FORMIX-DEBUG-CALLTOARMS-BUILDING] exception: " + e);
+            }
+
             SoundClientboundPacket.playSoundAtPos(SoundAction.BELL, buildingUsing.centrePos);
             CompletableFuture.delayedExecutor(300, TimeUnit.MILLISECONDS).execute(() -> {
                 SoundClientboundPacket.playSoundAtPos(SoundAction.BELL, buildingUsing.centrePos);

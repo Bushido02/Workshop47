@@ -67,6 +67,21 @@ public class CallToArmsUnitFormix extends Ability {
             worker.callToArmsGoal.setNearestFormixHiveAsTarget();
 
         if (!level.isClientSide()) {
+            // TEMP DEBUG (Formix population investigation, remove after diagnosis):
+            // fires every time Call to Arms is used, sends current population state directly
+            // into the in-game chat so it's visible without needing to find/send a log file.
+            try {
+                String ownerName = ((Unit) unitUsing).getOwnerName();
+                int supply = com.solegendary.reignofnether.building.BuildingServerEvents.getTotalPopulationSupply(ownerName);
+                String debugMsg = "[FORMIX-DEBUG-CALLTOARMS] owner='" + ownerName + "' supply=" + supply;
+                System.out.println(debugMsg);
+                net.minecraft.server.level.ServerPlayer sp = level.getServer().getPlayerList().getPlayerByName(ownerName);
+                if (sp != null)
+                    sp.sendSystemMessage(net.minecraft.network.chat.Component.literal(debugMsg));
+            } catch (Exception e) {
+                System.out.println("[FORMIX-DEBUG-CALLTOARMS] exception: " + e);
+            }
+
             SoundClientboundPacket.playSoundAtPos(SoundAction.BELL, ((Mob) unitUsing).getOnPos(), 0.5f);
             CompletableFuture.delayedExecutor(300, TimeUnit.MILLISECONDS).execute(() -> {
                 SoundClientboundPacket.playSoundAtPos(SoundAction.BELL, ((Mob) unitUsing).getOnPos(), 0.5f);
