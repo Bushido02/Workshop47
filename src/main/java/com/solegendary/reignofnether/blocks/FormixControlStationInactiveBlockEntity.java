@@ -4,6 +4,7 @@ import com.solegendary.reignofnether.registrars.BlockEntityRegistrar;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -29,5 +30,12 @@ public class FormixControlStationInactiveBlockEntity extends BlockEntity impleme
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    // См. комментарий в FormixControlStationBlockEntity.java (активная версия) -
+    // тот же фикс frustum culling, та же геометрия габаритов.
+    @Override
+    public AABB getRenderBoundingBox() {
+        return new AABB(this.getBlockPos()).inflate(5);
     }
 }

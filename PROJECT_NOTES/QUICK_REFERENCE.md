@@ -156,7 +156,7 @@ placeholder-геометрию.
 (ваниль-пайплайн Blockbench `Export Java Entity`, класс
 `HierarchicalModel`/`ModelPart`). Этот раздел — про модели БЛОКОВ через
 GeckoLib (терминал control station — первый и пока единственный пример
-в проекте, см. `FORMIX_FACTION_LOG.md` разделы 1.13–1.15). Два разных
+в проекте, см. `FORMIX_FACTION_LOG.md` разделы 1.13–1.18). Два разных
 формата, не взаимозаменяемы.
 
 **Когда:** ты сделал новую GeckoLib-модель в Blockbench для блока
@@ -200,6 +200,12 @@ GeckoLib (терминал control station — первый и пока един
   структуры проекта, файл `registrars/CreativeModeTabRegistrar.java`) —
   одна строка в списке `FORMIX_TAB_ITEMS`, не нужно трогать
   `ItemRegistrar`/`CommonModEvents` вручную каждый раз.
+- Если модель физически больше одного блока (почти всегда для GeckoLib-
+  блоков) — переопределю `getRenderBoundingBox()` в `BlockEntity` сразу,
+  без ожидания жалобы. Без этого Minecraft считает область рендера равной
+  блоку 1x1x1, и при некоторых углах камеры видна только часть модели
+  (view frustum culling обрезает остальное) — уже ловилось на терминале,
+  см. `FORMIX_FACTION_LOG.md` раздел 1.18.
 
 **GeckoLib как зависимость** уже подключена в `build.gradle` (через
 Curse Maven, не напрямую с официального Cloudsmith — прямые версии не
