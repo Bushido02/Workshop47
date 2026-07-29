@@ -55,13 +55,13 @@ public interface ConvertableUnit {
         }
         newEntity.setYRot(oldEntity.getYRot());
 
-        // Immediately mark the old entity for discard on this side (server) so it stops being counted
-        // in population/unit-list calculations for even a single tick. The old entity used to linger
-        // until the client round-trip (UnitClientboundPacket DISCARD) came back, which created a brief
-        // window where both old and new entities existed simultaneously and made population counters
-        // flicker (e.g. 3 -> 6 -> 3) during worker<->warrior conversion.
-        if (this instanceof ConvertableUnit convertable)
-            convertable.setShouldDiscard(true);
+        // Discard the old entity immediately on the server, instead of waiting for the client
+        // round-trip (UnitClientboundPacket DISCARD). The old approach left a window of a few ticks
+        // where both the old and new entities existed simultaneously, which made population counters
+        // flicker (e.g. 3 -> 6 -> 3) during worker<->warrior conversion. `this` is already statically
+        // known to be a ConvertableUnit here (we're inside its own default method), so no instanceof
+        // check/cast is needed - just call setShouldDiscard directly.
+        this.setShouldDiscard(true);
         oldEntity.discard();
 
         return newEntity;
