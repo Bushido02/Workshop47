@@ -9,7 +9,7 @@ public class FormixControlStationInactiveItemModel extends GeoModel<FormixContro
     private static final ResourceLocation MODEL =
             ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "geo/formix_control_station_diactive.geo.json");
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/block/formix_control_station_diactive.png");
+            ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/block/formix_control_station_inactive_block.png");
     private static final ResourceLocation ANIMATIONS =
             ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "animations/formix_control_station.animation.json");
 

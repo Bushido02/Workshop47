@@ -9,7 +9,7 @@ public class FormixControlStationInactiveModel extends GeoModel<FormixControlSta
     private static final ResourceLocation MODEL =
             ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "geo/formix_control_station_diactive.geo.json");
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/block/formix_control_station_diactive.png");
+            ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/block/formix_control_station_inactive_block.png");
     // нет анимаций у неактивной модели - файл не создавался (см. FORMIX_FACTION_LOG.md).
     // GeoModel.getAnimationResource() требует не-null ResourceLocation в API GeckoLib4,
     // поэтому указываем на тот же animation.json, что и активная модель, но
