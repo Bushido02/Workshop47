@@ -740,6 +740,10 @@
   "matchend.reignofnether.loser": "LOSER",
   "matchend.reignofnether.party_total": "Party total",
   "matchend.reignofnether.resources": "Resources harvested: %s",
+
+  "hud.formix_control_station.reignofnether.unlock_title": "Formix Control Station",
+  "hud.formix_control_station.reignofnether.unlock_button": "Unlock (%s Eidos)",
+  "hud.formix_control_station.reignofnether.unlock_eidos": "Eidos: %s / %s",
   "matchend.reignofnether.col_units": "Units",
   "matchend.reignofnether.col_military": "Military",
   "matchend.reignofnether.col_buildings": "Buildings",

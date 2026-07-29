@@ -1,7 +1,6 @@
 package com.solegendary.reignofnether.blocks;
 
-import com.solegendary.reignofnether.orthoview.OrthoviewClientEvents;
-import com.solegendary.reignofnether.player.PlayerClientEvents;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -20,11 +19,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 // НЕАКТИВНЫЙ терминал (control_station_diactive.bbmodel, статичная модель,
-// без анимации). Клик по нижней панели пока ТОЖЕ переключает RTS-режим
-// (симметрично активному варианту) - если в будущем неактивный терминал
-// должен вести себя иначе (например не реагировать на клик до
-// "разблокировки") - см. TODO в use() ниже, это единственное место,
-// которое потребуется изменить.
+// без анимации). ЗАБЛОКИРОВАН до разблокировки (29.07.2026, по решению
+// пользователя): клик по нижней панели больше НЕ переключает RTS-режим
+// напрямую - вместо этого открывает FormixControlStationUnlockScreen с
+// кнопкой "Разблокировать (10 Эйдоса)". При подтверждении клиент шлёт
+// FormixControlStationServerboundPacket, сервер списывает Эйдос (реальный
+// player.totalExperience) и заменяет блок в мире на FormixControlStationBlock
+// (активный) - см. эти два файла для деталей. После разблокировки
+// дальнейшие клики по терминалу идут уже через активный блок
+// (FormixControlStationBlock.use()), который по-прежнему переключает RTS
+// напрямую без экрана.
 public class FormixControlStationInactiveBlock extends Block implements EntityBlock {
 
     private static final VoxelShape SHAPE = Shapes.box(-1.0, 0.0, -1.0, 2.0, 4.0, 2.0);
@@ -60,15 +64,15 @@ public class FormixControlStationInactiveBlock extends Block implements EntityBl
         double relativeY = hit.getLocation().y - pos.getY();
 
         if (level.isClientSide) {
-            // TODO (будущая сессия): возможно неактивный терминал НЕ должен
-            // пускать в RTS до "разблокировки" - сейчас ведёт себя так же,
-            // как активный (симметрично), т.к. точная игровая логика ждёт
-            // будущей интеграции с playerprogression/Эйдос.
+            // Только нижняя зона реагирует - симметрично активному терминалу и
+            // экрану "Познание/Мир/Я" (ещё не реализован), который со временем
+            // должен занять оставшуюся площадь клика.
             if (relativeY <= 0.85) {
-                if (!PlayerClientEvents.isRTSPlayer()) {
-                    return InteractionResult.PASS;
-                }
-                OrthoviewClientEvents.tryToToggleEnable();
+                // Разблокировка не требует, чтобы игрок уже был в RTS-матче
+                // (в отличие от активного терминала) - это точка ВХОДА в RTS
+                // для игрока, который прогрессирует вне матча.
+                Minecraft.getInstance().setScreen(
+                        new FormixControlStationUnlockScreen(pos, FormixControlStationServerboundPacket.EIDOS_UNLOCK_COST));
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.PASS;

@@ -7,6 +7,7 @@ import com.solegendary.reignofnether.ability.BuildingAbilityClientboundPacket;
 import com.solegendary.reignofnether.ability.BuildingAbilityServerboundPacket;
 import com.solegendary.reignofnether.alliance.*;
 import com.solegendary.reignofnether.attackwarnings.AttackWarningClientboundPacket;
+import com.solegendary.reignofnether.blocks.FormixControlStationServerboundPacket;
 import com.solegendary.reignofnether.building.BuildingClientboundPacket;
 import com.solegendary.reignofnether.building.BuildingServerboundPacket;
 import com.solegendary.reignofnether.building.custombuilding.CustomBuildingClientboundPacket;
@@ -360,6 +361,12 @@ public final class PacketHandler {
                 .encoder(FormixPlayerProgressionClientboundPacket::encode)
                 .decoder(FormixPlayerProgressionClientboundPacket::new)
                 .consumerMainThread(FormixPlayerProgressionClientboundPacket::handle)
+                .add();
+
+        INSTANCE.messageBuilder(FormixControlStationServerboundPacket.class, index++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(FormixControlStationServerboundPacket::encode)
+                .decoder(FormixControlStationServerboundPacket::new)
+                .consumerMainThread(FormixControlStationServerboundPacket::handle)
                 .add();
     }
 }
