@@ -22,6 +22,7 @@ import com.solegendary.reignofnether.unit.interfaces.*;
 import com.solegendary.reignofnether.util.LanguageUtil;
 import com.solegendary.reignofnether.util.MiscUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -234,7 +235,26 @@ public class UnitActionItem {
                         preselectedBlockPos
                     );
 
-                    if (unit instanceof WorkerUnit workerUnit && resName != ResourceName.NONE
+                    // Клик по воде -> рыбалка (только FormixWorkerUnit, решение
+                    // пользователя 29.07.2026 - не общий WorkerUnit/GatherResourcesGoal,
+                    // чтобы не затронуть Villagers). Проверяется ДО обычной ветки
+                    // ресурсов ниже, т.к. вода никогда не имеет ResourceName через
+                    // ResourceSources (resName будет NONE) - без этой ветки клик по
+                    // воде просто попал бы в obычное "иди в точку" (else if ниже).
+                    if (unit instanceof com.solegendary.reignofnether.unit.units.formix.FormixWorkerUnit formixWorker
+                        && level.getBlockState(preselectedBlockPos).getFluidState().is(FluidTags.WATER)) {
+                        FishingGoal fishingGoal = formixWorker.getFishingGoal();
+                        fishingGoal.setFishingSpot(preselectedBlockPos);
+                        if (Unit.atMaxResources((Unit) formixWorker)) {
+                            if (level.isClientSide()) {
+                                HudClientEvents.showTemporaryMessage(LanguageUtil.getTranslation("hud.reignofnether.worker_inv_full"));
+                            }
+                            fishingGoal.stopFishing();
+                            if (formixWorker.getReturnResourcesGoal() != null)
+                                formixWorker.getReturnResourcesGoal().returnToClosestBuilding();
+                        }
+                    }
+                    else if (unit instanceof WorkerUnit workerUnit && resName != ResourceName.NONE
                         && (buildingAtPos == null || buildingAtPos.getBuilding() instanceof AbstractBridge)) {
                         GatherResourcesGoal goal = workerUnit.getGatherResourceGoal();
                         goal.setTargetResourceName(resName);

@@ -38,6 +38,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
@@ -98,6 +100,7 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
     public SelectedTargetGoal<? extends LivingEntity> getTargetGoal() {return targetGoal;}
     public BuildRepairGoal getBuildRepairGoal() {return buildRepairGoal;}
     public GatherResourcesGoal getGatherResourceGoal() {return gatherResourcesGoal;}
+    public FishingGoal getFishingGoal() {return fishingGoal;}
     public ReturnResourcesGoal getReturnResourcesGoal() {return returnResourcesGoal;}
     public int getMaxResources() {return maxResources;}
 
@@ -105,6 +108,7 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
     private SelectedTargetGoal<? extends LivingEntity> targetGoal;
     public BuildRepairGoal buildRepairGoal;
     public GatherResourcesGoal gatherResourcesGoal;
+    public FishingGoal fishingGoal;
     private ReturnResourcesGoal returnResourcesGoal;
     private AbstractMeleeAttackUnitGoal attackGoal;
     public CallToArmsGoalFormix callToArmsGoal;
@@ -286,6 +290,18 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
         AttackerUnit.tick(this);
         WorkerUnit.tick(this);
 
+        // Рыбалка не входит в общий WorkerUnit.tick()/GatherResourcesGoal (решение
+        // пользователя 29.07.2026 - только Formix Worker, не общая механика мода),
+        // поэтому тикается и переключает инструмент в руке отдельно здесь.
+        if (this.fishingGoal != null) {
+            this.fishingGoal.tick();
+            if (this.fishingGoal.isFishing() && !this.getBuildRepairGoal().isBuilding()) {
+                ItemStack mainHandItem = this.getItemBySlot(EquipmentSlot.MAINHAND);
+                if (!mainHandItem.is(Items.FISHING_ROD))
+                    this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.FISHING_ROD));
+            }
+        }
+
         if (this.callToArmsGoal != null)
             this.callToArmsGoal.tick();
 
@@ -323,6 +339,8 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
     public void resetBehaviours() {
         if (this.callToArmsGoal != null)
             this.callToArmsGoal.stop();
+        if (this.fishingGoal != null)
+            this.fishingGoal.stopFishing();
     }
 
     public void initialiseGoals() {
@@ -332,6 +350,7 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
         this.attackGoal = new MeleeAttackUnitGoal(this, true);
         this.buildRepairGoal = new BuildRepairGoal(this);
         this.gatherResourcesGoal = new GatherResourcesGoal(this);
+        this.fishingGoal = new FishingGoal(this);
         this.returnResourcesGoal = new ReturnResourcesGoal(this);
         this.callToArmsGoal = new CallToArmsGoalFormix(this);
     }
@@ -344,6 +363,7 @@ public class FormixWorkerUnit extends Monster implements Unit, WorkerUnit, Attac
         this.goalSelector.addGoal(2, attackGoal);
         this.goalSelector.addGoal(2, buildRepairGoal);
         this.goalSelector.addGoal(2, gatherResourcesGoal);
+        this.goalSelector.addGoal(2, fishingGoal);
         this.goalSelector.addGoal(2, returnResourcesGoal);
         this.goalSelector.addGoal(2, garrisonGoal);
         this.targetSelector.addGoal(2, targetGoal);

@@ -1,12 +1,13 @@
 package com.solegendary.reignofnether.blocks;
 
-import com.solegendary.reignofnether.util.MyRenderer;
+import com.solegendary.reignofnether.ReignOfNether;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 // Small popup shown when the player clicks an inactive FormixControlStation terminal (see
 // FormixControlStationInactiveBlock.use()). Purely a confirmation + "can I afford it" UX layer -
@@ -14,24 +15,33 @@ import net.minecraft.network.chat.Component;
 // happens server-side in FormixControlStationServerboundPacket.handle(), this screen never
 // mutates state directly.
 //
-// Modelled on MatchEndScreen.java (small centered panel, MyRenderer.renderFrameWithBg, plain
-// vanilla Button) rather than the heavier MatchStartScreen - this is a one-button confirmation,
-// not a full custom UI.
+// Background is a full-screen custom PNG supplied by the project owner (see
+// textures/gui/formix_unlock_bg.png) rather than the earlier programmatic
+// MyRenderer.renderFrameWithBg panel - stretched to the current window size via the 9-arg
+// GuiGraphics.blit(...) overload (same call shape already used in
+// tutorial/TutorialRendering.java for non-tiled textures in this project), so it scales cleanly
+// with any resolution/GUI Scale without needing a fixed logical panel size.
 public class FormixControlStationUnlockScreen extends Screen {
 
-    private static final int BG_PANEL = 0x40000000;
-    private static final int ACCENT = 0xFFE6C76A;
-    private static final int TEXT_NORMAL = 0xFFFFFFFF;
-    private static final int TEXT_DIM = 0xFFB0B8C0;
+    // Actual pixel dimensions of formix_unlock_bg.png. MUST be updated to match the real file
+    // if/when the art is replaced with a different resolution - these are only used as the UV
+    // source-texture size in blit(), not as the on-screen size (the image is always stretched to
+    // fill the current window regardless of these values).
+    private static final int BG_TEXTURE_W = 1920;
+    private static final int BG_TEXTURE_H = 1080;
 
-    private static final int PANEL_W = 200;
-    private static final int PANEL_H = 70;
-    private static final int PAD = 10;
+    private static final ResourceLocation BACKGROUND_LOCATION =
+            ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/gui/formix_unlock_bg.png");
+
+    private static final int TEXT_NORMAL = 0xFFFFFFFF;
+    private static final int TEXT_DEFICIT = 0xFFE05A5A;
+    private static final int ACCENT = 0xFFE6C76A;
+
+    private static final int BUTTON_W = 220;
+    private static final int BUTTON_H = 20;
 
     private final BlockPos pos;
     private final int cost;
-
-    private int panelL, panelT;
 
     public FormixControlStationUnlockScreen(BlockPos pos, int cost) {
         super(Component.translatable("hud.formix_control_station.reignofnether.unlock_title"));
@@ -41,9 +51,6 @@ public class FormixControlStationUnlockScreen extends Screen {
 
     @Override
     protected void init() {
-        panelL = (this.width - PANEL_W) / 2;
-        panelT = (this.height - PANEL_H) / 2;
-
         boolean canAfford = Minecraft.getInstance().player != null
                 && Minecraft.getInstance().player.totalExperience >= cost;
 
@@ -53,25 +60,29 @@ public class FormixControlStationUnlockScreen extends Screen {
                             FormixControlStationServerboundPacket.requestUnlock(pos);
                             onClose();
                         })
-                .bounds(panelL + PAD, panelT + PANEL_H - PAD - 20, PANEL_W - PAD * 2, 20)
+                .bounds((this.width - BUTTON_W) / 2, this.height - 60, BUTTON_W, BUTTON_H)
                 .build();
         unlockButton.active = canAfford;
         addRenderableWidget(unlockButton);
+
+        addRenderableWidget(Button.builder(Component.literal("✕"), b -> onClose())
+                .bounds(this.width - 30, 10, 20, 20)
+                .build());
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        MyRenderer.renderFrameWithBg(g, panelL, panelT, PANEL_W, PANEL_H, BG_PANEL);
+        // Stretched full-screen background - see class javadoc for why the 9-arg blit overload
+        // (not the tiled Screen.BACKGROUND_LOCATION pattern MatchEndScreen uses elsewhere in
+        // this project) is the correct call here.
+        g.blit(BACKGROUND_LOCATION, 0, 0, 0, 0, this.width, this.height, BG_TEXTURE_W, BG_TEXTURE_H);
 
-        int cl = panelL + PAD;
-        int y = panelT + PAD;
-
-        g.drawString(font, Component.translatable("hud.formix_control_station.reignofnether.unlock_title"), cl, y, ACCENT, true);
-        y += 12;
+        g.drawCenteredString(font, Component.translatable("hud.formix_control_station.reignofnether.unlock_title"),
+                this.width / 2, 30, ACCENT);
 
         int currentEidos = Minecraft.getInstance().player != null ? Minecraft.getInstance().player.totalExperience : 0;
         String eidosLine = Component.translatable("hud.formix_control_station.reignofnether.unlock_eidos", currentEidos, cost).getString();
-        g.drawString(font, eidosLine, cl, y, currentEidos >= cost ? TEXT_NORMAL : 0xFFE05A5A, true);
+        g.drawCenteredString(font, eidosLine, this.width / 2, this.height - 80, currentEidos >= cost ? TEXT_NORMAL : TEXT_DEFICIT);
 
         super.render(g, mouseX, mouseY, partialTick);
     }

@@ -744,6 +744,7 @@
   "hud.formix_control_station.reignofnether.unlock_title": "Formix Control Station",
   "hud.formix_control_station.reignofnether.unlock_button": "Unlock (%s Eidos)",
   "hud.formix_control_station.reignofnether.unlock_eidos": "Eidos: %s / %s",
+  "hud.formix_control_station.reignofnether.progression_title": "Познание / Мир / Я",
   "matchend.reignofnether.col_units": "Units",
   "matchend.reignofnether.col_military": "Military",
   "matchend.reignofnether.col_buildings": "Buildings",

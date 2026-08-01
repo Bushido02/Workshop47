@@ -2,6 +2,8 @@ package com.solegendary.reignofnether.blocks;
 
 import com.solegendary.reignofnether.orthoview.OrthoviewClientEvents;
 import com.solegendary.reignofnether.player.PlayerClientEvents;
+import com.solegendary.reignofnether.playerprogression.FormixPlayerProgressionScreen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -69,9 +71,6 @@ public class FormixControlStationBlock extends Block implements EntityBlock {
         double relativeY = hit.getLocation().y - pos.getY();
 
         if (level.isClientSide) {
-            // TODO (будущая сессия): когда появится экран "Познание/Мир/Я",
-            // разделить relativeY на зоны точнее (сейчас только "низ = RTS
-            // кнопка", всё остальное = PASS, экран не открывается).
             if (relativeY <= 0.85) {
                 if (!PlayerClientEvents.isRTSPlayer()) {
                     return InteractionResult.PASS;
@@ -79,7 +78,11 @@ public class FormixControlStationBlock extends Block implements EntityBlock {
                 OrthoviewClientEvents.tryToToggleEnable();
                 return InteractionResult.SUCCESS;
             }
-            return InteractionResult.PASS;
+            // Верхняя зона - экран "Познание/Мир/Я" (29.07.2026). Сейчас это
+            // только каркас (фон + закрыть), реальные узлы дерева навыков -
+            // отдельная будущая задача, см. FormixPlayerProgressionScreen.
+            Minecraft.getInstance().setScreen(new FormixPlayerProgressionScreen());
+            return InteractionResult.SUCCESS;
         }
         return InteractionResult.SUCCESS;
     }
