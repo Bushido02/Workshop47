@@ -6,6 +6,8 @@ import com.solegendary.reignofnether.unit.interfaces.WorkerUnit;
 import com.solegendary.reignofnether.unit.packets.UnitSyncClientboundPacket;
 import com.solegendary.reignofnether.util.MiscUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Mob;
@@ -41,6 +43,18 @@ public class FishingGoal extends MoveToTargetBlockGoal {
 
     @Nullable private BlockPos fishingSpot = null;
 
+    // TEMP DEBUG (FORMIX-DEBUG-FISHING, добавлено 01.08.2026, убрать после
+    // диагностики бага "рыба никогда не ловится" - см. FORMIX_FACTION_LOG.md)
+    private int debugLastTickShown = -1;
+    private void debugMsg(String msg) {
+        if (mob.level().isClientSide()) return;
+        Unit unit = (Unit) mob;
+        ServerPlayer sp = ((net.minecraft.server.level.ServerLevel) mob.level())
+                .getServer().getPlayerList().getPlayerByName(unit.getOwnerName());
+        if (sp != null)
+            sp.sendSystemMessage(Component.literal("[FORMIX-DEBUG-FISHING] " + msg));
+    }
+
     public FishingGoal(Mob mob) {
         super(mob, true, REACH_RANGE - 1);
     }
@@ -72,6 +86,9 @@ public class FishingGoal extends MoveToTargetBlockGoal {
             MiscUtil.addUnitCheckpoint((Unit) mob, bp, true);
             this.fishingSpot = bp;
             super.setMoveTarget(bp);
+            debugMsg("setFishingSpot: " + bp + " valid=true");
+        } else {
+            debugMsg("setFishingSpot: " + bp + " REJECTED (bp null or !isValidFishingSpot)");
         }
     }
 
@@ -99,13 +116,22 @@ public class FishingGoal extends MoveToTargetBlockGoal {
         if (fishingSpot == null)
             return;
 
+        // TEMP DEBUG: throttled раз в секунду (каждые 20 тиков), чтобы не спамить чат
+        int nowTick = mob.tickCount;
+        boolean shouldLog = (nowTick - debugLastTickShown) >= 20;
+        if (shouldLog) debugLastTickShown = nowTick;
+
         // цель стала невалидной (воду засыпали блоками) - прекращаем рыбачить
         if (!isValidFishingSpot(fishingSpot)) {
+            debugMsg("tick: fishingSpot no longer valid, stopping. spot=" + fishingSpot);
             stopFishing();
             return;
         }
 
         if (!isAtFishingSpot()) {
+            if (shouldLog)
+                debugMsg("tick: moving to spot=" + fishingSpot + " navDone=" + mob.getNavigation().isDone()
+                        + " distSqr=" + fishingSpot.distToCenterSqr(mob.getX(), mob.getEyeY(), mob.getZ()));
             super.setMoveTarget(fishingSpot);
             return;
         }
@@ -114,12 +140,16 @@ public class FishingGoal extends MoveToTargetBlockGoal {
             waitingForBite = true;
             RandomSource random = mob.level().getRandom();
             ticksUntilBite = MIN_BITE_TICKS + random.nextInt(MAX_BITE_TICKS - MIN_BITE_TICKS);
+            debugMsg("tick: at spot, starting wait for bite. ticksUntilBite=" + ticksUntilBite);
             return;
         }
 
         ticksUntilBite -= 1;
+        if (shouldLog)
+            debugMsg("tick: waiting for bite. ticksUntilBite=" + ticksUntilBite);
         if (ticksUntilBite <= 0) {
             waitingForBite = false;
+            debugMsg("tick: BITE! calling catchSomething()");
             catchSomething();
 
             // при заполнении лимита ресурсов - вернуться на склад, как обычный сбор
@@ -164,6 +194,8 @@ public class FishingGoal extends MoveToTargetBlockGoal {
     }
 
     public void stopFishing() {
+        if (fishingSpot != null)
+            debugMsg("stopFishing() called! spot was=" + fishingSpot + " waitingForBite=" + waitingForBite + " ticksUntilBite=" + ticksUntilBite);
         fishingSpot = null;
         waitingForBite = false;
         ticksUntilBite = 0;
