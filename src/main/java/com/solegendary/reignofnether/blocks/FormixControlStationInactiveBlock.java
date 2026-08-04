@@ -58,16 +58,25 @@ public class FormixControlStationInactiveBlock extends Block implements EntityBl
         return SHAPE;
     }
 
+    // См. FormixControlStationBlock.LOWER_ZONE_FRACTION - тот же баг/фикс
+    // (01.08.2026): SHAPE высотой 4 блока, а порог 0.85 раньше сравнивался
+    // с абсолютным relativeY (0..4), из-за чего нижняя зона фактически была
+    // недостижима обычным кликом (только самый низ модели). Теперь делим на
+    // реальную высоту SHAPE, порог снова осмысленная доля 0..1.
+    private static final double LOWER_ZONE_FRACTION = 0.85;
+
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
-                                  InteractionHand hand, BlockHitResult hit) {
+                                 InteractionHand hand, BlockHitResult hit) {
         double relativeY = hit.getLocation().y - pos.getY();
+        double shapeHeight = SHAPE.max(net.minecraft.core.Direction.Axis.Y);
+        double relativeFraction = relativeY / shapeHeight;
 
         if (level.isClientSide) {
             // Только нижняя зона реагирует - симметрично активному терминалу и
             // экрану "Познание/Мир/Я" (ещё не реализован), который со временем
             // должен занять оставшуюся площадь клика.
-            if (relativeY <= 0.85) {
+            if (relativeFraction <= LOWER_ZONE_FRACTION) {
                 // Разблокировка не требует, чтобы игрок уже был в RTS-матче
                 // (в отличие от активного терминала) - это точка ВХОДА в RTS
                 // для игрока, который прогрессирует вне матча.
