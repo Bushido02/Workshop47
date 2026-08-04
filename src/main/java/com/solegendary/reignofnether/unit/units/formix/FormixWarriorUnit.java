@@ -197,7 +197,7 @@ public class FormixWarriorUnit extends Monster implements Unit, AttackerUnit, Ke
         animateScaleReducing = false;
         switch (animAction) {
             case ATTACK_UNIT, ATTACK_BUILDING -> {
-                activeAnimDef = com.solegendary.reignofnether.unit.modelling.animations.FormixAnimations.ATTACK;
+                activeAnimDef = com.solegendary.reignofnether.unit.modelling.animations.FormixWarriorAnimations.ATTACK;
                 activeAnimState = attackAnimState;
                 animateScale = 1.0f;
                 animateSpeed = 1.0f;
